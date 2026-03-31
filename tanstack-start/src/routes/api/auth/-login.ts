@@ -5,6 +5,7 @@ import {
   validateUser,
   hashPassword,
 } from "../../../server/auth";
+import { loginRateLimit, getClientIP } from "../../../server/rate-limit";
 import { z } from "zod";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -27,7 +28,26 @@ function createRefreshCookie(token: string, maxAge: number): string {
 
 export const loginFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => loginSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, request }) => {
+    const ip = getClientIP(request);
+    const rateLimitKey = `login:${ip}`;
+    const rateLimitResult = loginRateLimit(rateLimitKey);
+
+    if (!rateLimitResult.success) {
+      const response = Response.json(
+        {
+          success: false,
+          error: "Too many login attempts. Please try again later.",
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimitResult.retryAfter) },
+        },
+      );
+      return response;
+    }
+
     const user = await validateUser(data.email, data.password);
     if (!user) {
       return Response.json(
@@ -61,7 +81,25 @@ export const loginFn = createServerFn({ method: "POST" })
 
 export const registerFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => registerSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, request }) => {
+    const ip = getClientIP(request);
+    const rateLimitKey = `register:${ip}`;
+    const rateLimitResult = loginRateLimit(rateLimitKey);
+
+    if (!rateLimitResult.success) {
+      return Response.json(
+        {
+          success: false,
+          error: "Too many registration attempts. Please try again later.",
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimitResult.retryAfter) },
+        },
+      );
+    }
+
     if (db.users.existsByEmail(data.email)) {
       return Response.json(
         { success: false, error: "Email already exists" },

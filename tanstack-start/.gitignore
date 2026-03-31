@@ -8,6 +8,9 @@ dist/
 # Yarn install state
 .yarn/
 
+# SQLite database
+data/
+
 # Editor
 *.swp
 *.swo
