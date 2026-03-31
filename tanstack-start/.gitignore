@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.output/
+
+# Yarn
+.yarn/
+.pnp.*
+!.pnp.cjs
+!.pnp.loader.mjs
+
+# Vite
+vite.config.*.timestamp-*
+vite.config.timestamp_*
+
+# Editor
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+.env.local
