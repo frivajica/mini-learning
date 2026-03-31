@@ -7,35 +7,61 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Users as UsersIcon, ArrowRight } from "lucide-react";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-}
+import { useUsers } from "../../lib/api/hooks";
+import { Users as UsersIcon, ArrowRight, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authed/users")({
-  loader: async () => {
-    const response = await fetch("/api/users", {
-      credentials: "include",
-    });
-    if (!response.ok) throw new Error("Failed to fetch users");
-    const data = await response.json();
-    return data.data as User[];
-  },
   component: Users,
 });
 
 function Users() {
-  const users = Route.useLoaderData();
+  const { data: users, isLoading, isError, error, refetch } = useUsers();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Users</h2>
+          <p className="text-muted-foreground">
+            Manage your application users.
+          </p>
+        </div>
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+          <p className="font-medium">Failed to load users</p>
+          <p className="text-sm mt-1">{(error as Error)?.message}</p>
+          <Button
+            onClick={() => refetch()}
+            variant="outline"
+            size="sm"
+            className="mt-2"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Users</h2>
-        <p className="text-muted-foreground">Manage your application users.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Users</h2>
+          <p className="text-muted-foreground">
+            Manage your application users. {users?.length ?? 0} total.
+          </p>
+        </div>
+        <Button onClick={() => refetch()} variant="outline" size="sm">
+          Refresh
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -55,7 +81,7 @@ function Users() {
                 <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                   {user.role}
                 </span>
-                <Link to="/users/$userId" params={{ userId: user.id }}>
+                <Link to="/dashboard">
                   <Button variant="ghost" size="sm">
                     View <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>

@@ -1,11 +1,13 @@
 /// <reference types="vite/client" />
 import type { ReactNode } from "react";
+import { QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRoute,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { queryClient } from "../lib/query-client";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -38,9 +40,11 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
+    <QueryClientProvider client={queryClient}>
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+    </QueryClientProvider>
   );
 }
 

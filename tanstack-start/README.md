@@ -4,9 +4,9 @@ Production-ready TanStack Start reference implementation for learning full-stack
 
 ## TL;DR
 
-- **What**: TanStack Start + TanStack Router
+- **What**: TanStack Start + TanStack Router + TanStack Query
 - **Why**: Type-safe full-stack React framework with file-based routing
-- **Stack**: React 19, TanStack Start, SQLite, bcrypt, jose, Zod
+- **Stack**: React 19, TanStack Start, TanStack Query, SQLite, bcrypt, jose, Zod
 - **Run**: `yarn install && yarn dev`
 
 ## Quick Start
@@ -32,7 +32,7 @@ yarn test
 
 - **File-based routing** with TanStack Router
 - **Type-safe routes** - auto-generated route tree
-- **Server functions** - type-safe API endpoints
+- **React Query** - data fetching, caching, loading/error states
 - **SQLite database** - persistent storage with better-sqlite3
 - **JWT Authentication** with httpOnly cookies
 - **Rate limiting** - 5 login attempts per 5 minutes per IP
@@ -43,38 +43,56 @@ yarn test
 
 ## Tech Stack
 
-| Layer      | Technology      | Why                              |
-| ---------- | --------------- | -------------------------------- |
-| Framework  | TanStack Start  | Type-safe full-stack React       |
-| Routing    | TanStack Router | File-based + type-safe           |
-| Database   | SQLite          | Persistent, zero-config storage  |
-| Validation | Zod             | Runtime schema validation        |
-| Auth       | jose + bcrypt   | JWT + password hashing           |
-| Rate Limit | Custom          | In-memory, per-IP sliding window |
-| Styling    | Tailwind        | Utility-first CSS                |
+| Layer         | Technology      | Why                                |
+| ------------- | --------------- | ---------------------------------- |
+| Framework     | TanStack Start  | Type-safe full-stack React         |
+| Routing       | TanStack Router | File-based + type-safe             |
+| Data Fetching | TanStack Query  | Caching, loading states, mutations |
+| Database      | SQLite          | Persistent, zero-config storage    |
+| Validation    | Zod             | Runtime schema validation          |
+| Auth          | jose + bcrypt   | JWT + password hashing             |
+| Rate Limit    | Custom          | In-memory, per-IP sliding window   |
+| Styling       | Tailwind        | Utility-first CSS                  |
 
 ## Project Structure
 
 ```
 src/
-├── routes/                    # File-based routes
-│   ├── index.tsx              # Home (public)
-│   ├── login.tsx              # Login (public)
-│   ├── register.tsx           # Register (public)
-│   ├── _authed.tsx            # Protected layout
-│   ├── _authed/dashboard.tsx  # Dashboard
-│   ├── _authed/users.tsx      # Users list
-│   ├── api/auth/-login.ts     # Auth API (login, register, logout, me)
-│   └── api/users/-index.ts    # Users API
-│   └── api/health.ts          # Health check
-├── components/ui/              # UI components
-├── hooks/                     # React hooks
-├── utils/                     # Utilities (Zod schemas)
+├── routes/                     # File-based routes
+│   ├── index.tsx               # Home (public)
+│   ├── login.tsx               # Login (public)
+│   ├── register.tsx            # Register (public)
+│   ├── _authed.tsx             # Protected layout
+│   ├── _authed/dashboard.tsx   # Dashboard
+│   ├── _authed/users.tsx       # Users list (React Query)
+│   ├── api/auth/-login.ts      # Auth API (login, register, logout, me)
+│   ├── api/users/-index.ts     # Users API
+│   └── api/-health.ts          # Health check
+├── components/ui/             # UI components
+├── lib/                       # Library code
+│   ├── api/hooks.ts           # React Query hooks
+│   └── query-client.ts        # QueryClient config
 ├── server/                    # Server-side code
 │   ├── auth.ts               # JWT + bcrypt functions
-│   ├── db.ts                # SQLite database layer
-│   └── rate-limit.ts        # Rate limiting
-└── router.tsx                # Router configuration
+│   ├── db.ts                 # SQLite database layer
+│   └── rate-limit.ts         # Rate limiting
+├── utils/                    # Utilities (Zod schemas)
+└── router.tsx               # Router configuration
+```
+
+## React Query Usage
+
+```tsx
+// lib/api/hooks.ts
+import { useQuery } from "@tanstack/react-query";
+
+export function useUsers() {
+  return useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchUsers(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
 ```
 
 ## API Endpoints
