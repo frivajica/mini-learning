@@ -1,6 +1,6 @@
 # Framework Comparison
 
-Side-by-side comparison of the same features across all four frameworks.
+Side-by-side comparison of the same features across all frameworks.
 
 ---
 
@@ -66,6 +66,21 @@ src/
 ├── services/            # Business logic
 ├── stores/              # Zustand stores
 └── types/               # TypeScript types
+```
+
+### Spring Boot
+
+```
+src/main/java/com/mini/
+├── config/           # Security, Redis, CORS config
+├── controller/       # REST endpoints (@RestController)
+├── service/         # Business logic (@Service)
+├── repository/      # Data access (@Repository extends JpaRepository)
+├── model/           # JPA entities (@Entity)
+├── dto/             # Request/Response objects
+├── security/       # JWT provider, filters
+├── exception/       # Global exception handler
+└── util/            # Utilities
 ```
 
 ---
@@ -182,6 +197,45 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 export { auth as middleware } from "@/lib/auth";
 ```
 
+### Spring Boot - Security Filter Chain
+
+```java
+// SecurityConfig.java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                          JwtAuthenticationFilter jwtAuthFilter) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+}
+
+// JwtTokenProvider.java
+@Service
+public class JwtTokenProvider {
+    public String generateAccessToken(Long userId, String email) {
+        return Jwts.builder()
+            .subject(userId.toString())
+            .claim("email", email)
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + 900000)) // 15 min
+            .signWith(secretKey)
+            .compact();
+    }
+}
+```
+
 ---
 
 ## API Routes
@@ -275,6 +329,36 @@ export async function POST(request: Request) {
   });
 
   return response;
+}
+```
+
+### Spring Boot - Controller Pattern
+
+```java
+// AuthController.java
+@RestController
+@RequestMapping("/api/v1/auth")
+public class AuthController {
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<AuthResponse>> register(
+            @Valid @RequestBody RegisterRequest request) {
+        AuthResponse response = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Registration successful", response));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request, clientIp);
+        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
+    }
 }
 ```
 
@@ -375,6 +459,56 @@ export default async function UsersPage() {
 }
 ```
 
+### Spring Boot - Spring Data JPA
+
+```java
+// User.java (Entity)
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    private String name;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+}
+
+// UserRepository.java
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
+}
+
+// UserService.java
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+}
+```
+
 ---
 
 ## Validation
@@ -472,6 +606,36 @@ export const loginSchema = z.object({
 const result = registerSchema.safeParse(body);
 if (!result.success) {
   return Response.json({ errors: result.error.issues }, { status: 400 });
+}
+```
+
+### Spring Boot - Jakarta Bean Validation
+
+```java
+// RegisterRequest.java
+public class RegisterRequest {
+    @NotBlank(message = "Name is required")
+    @Size(min = 2, max = 100)
+    private String name;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    @Size(min = 8, max = 100)
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).*$",
+             message = "Password must contain digit, lowercase, and uppercase")
+    private String password;
+}
+
+// In Controller
+@PostMapping("/register")
+public ResponseEntity<ApiResponse<AuthResponse>> register(
+        @Valid @RequestBody RegisterRequest request) {
+    // @Valid triggers validation automatically
+    AuthResponse response = authService.register(request);
+    return ResponseEntity.ok(ApiResponse.success(response));
 }
 ```
 
@@ -591,6 +755,59 @@ export const config = {
 };
 ```
 
+### Spring Boot - Security Filter Chain
+
+```java
+// JwtAuthenticationFilter.java
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserDetailsServiceImpl userDetailsService;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String token = extractTokenFromRequest(request);
+
+        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+            Long userId = jwtTokenProvider.getUserIdFromToken(token);
+            UserDetails userDetails = userDetailsService.loadUserById(userId);
+
+            UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}
+
+// RateLimitFilter.java
+@Component
+public class RateLimitFilter extends OncePerRequestFilter {
+    private final RateLimitService rateLimitService;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String clientIp = IpUtil.getClientIp(request);
+
+        if (!rateLimitService.isAllowed(clientIp, "api")) {
+            response.setStatus(429);
+            response.getWriter().write("Too many requests");
+            return;
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}
+```
+
 ---
 
 ## Error Handling
@@ -699,6 +916,45 @@ export async function GET(request: Request) {
 }
 ```
 
+### Spring Boot - Global Exception Handler
+
+```java
+// GlobalExceptionHandler.java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBadRequest(BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult().getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .toList();
+
+        ApiResponse<Void> response = ApiResponse.error("Validation failed");
+        response.setErrors(errors);
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Internal server error"));
+    }
+}
+```
+
 ---
 
 ## Configuration
@@ -796,17 +1052,61 @@ export const env = {
 };
 ```
 
+### Spring Boot - application.yml
+
+```yaml
+# application.yml
+spring:
+  application:
+    name: mini-spring
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/mini_spring}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+
+server:
+  port: ${PORT:8080}
+
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+```
+
 ---
 
 ## Summary Table
 
-| Feature        | Express        | FastAPI        | NestJS          | Next.js          |
-| -------------- | -------------- | -------------- | --------------- | ---------------- |
-| **Setup**      | Manual         | Auto-generated | CLI             | create-next-app  |
-| **Routing**    | Express Router | Decorators     | Controllers     | App Router files |
-| **Validation** | Zod            | Pydantic       | class-validator | Zod              |
-| **Auth**       | Manual JWT     | Manual JWT     | @nestjs/jwt     | NextAuth.js      |
-| **DI**         | Manual         | Depends        | Built-in        | Hooks/Context    |
-| **Types**      | Manual         | Pydantic       | TypeScript      | TypeScript       |
-| **Docs**       | Manual         | Swagger UI     | Swagger         | Next.js Docs     |
-| **Best For**   | Learning       | Python teams   | Enterprise      | React apps       |
+| Feature        | Express        | FastAPI        | NestJS          | Next.js          | Spring Boot           |
+| -------------- | -------------- | -------------- | --------------- | ---------------- | --------------------- |
+| **Setup**      | Manual         | Auto-generated | CLI             | create-next-app  | Spring Initializr     |
+| **Routing**    | Express Router | Decorators     | Controllers     | App Router files | @RestController       |
+| **Validation** | Zod            | Pydantic       | class-validator | Zod              | Bean Validation       |
+| **Auth**       | Manual JWT     | Manual JWT     | @nestjs/jwt     | NextAuth.js      | Spring Security       |
+| **DI**         | Manual         | Depends        | Built-in        | Hooks/Context    | @Autowired/@Construct |
+| **ORM**        | Drizzle        | SQLAlchemy     | TypeORM/Prisma  | Drizzle          | Spring Data JPA       |
+| **Types**      | Manual         | Pydantic       | TypeScript      | TypeScript       | Java (static)         |
+| **Config**     | .env files     | Pydantic       | @nestjs/config  | env.ts           | application.yml       |
+| **Best For**   | Learning       | Python teams   | Enterprise      | React apps       | Enterprise Java       |

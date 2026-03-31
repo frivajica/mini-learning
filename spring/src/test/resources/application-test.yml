@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: mini-spring-test
+
+  # H2 in-memory database for testing
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # JPA configuration for tests
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # Disable Flyway for tests
+  flyway:
+    enabled: false
+
+  # Mock Redis for tests
+  data:
+    redis:
+      url: redis://localhost:6379
+
+# JWT configuration for tests
+jwt:
+  secret: TestSecretKeyForJWTTokensThatShouldBeAtLeast256BitsLongForTesting!!
+
+# Server configuration
+server:
+  port: 0
+
+# Disable actuator for tests
+management:
+  endpoints:
+    enabled-by-default: false
+
+# Logging
+logging:
+  level:
+    root: WARN
+    com.mini: DEBUG
