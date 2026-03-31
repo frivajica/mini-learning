@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authed/users")({
 });
 
 function Users() {
-  const { data: users, isLoading, isError, error, refetch } = useUsers();
+  const { data: users = [], isLoading, isError, error, refetch } = useUsers();
 
   if (isLoading) {
     return (
@@ -36,7 +36,7 @@ function Users() {
         </div>
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
           <p className="font-medium">Failed to load users</p>
-          <p className="text-sm mt-1">{(error as Error)?.message}</p>
+          <p className="text-sm mt-1">{error?.message}</p>
           <Button
             onClick={() => refetch()}
             variant="outline"
@@ -56,7 +56,7 @@ function Users() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Users</h2>
           <p className="text-muted-foreground">
-            Manage your application users. {users?.length ?? 0} total.
+            Manage your application users. {users.length} total.
           </p>
         </div>
         <Button onClick={() => refetch()} variant="outline" size="sm">
@@ -64,33 +64,37 @@ function Users() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {users?.map((user) => (
-          <Card key={user.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                <UsersIcon className="h-4 w-4 mr-2 inline" />
-                {user.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-muted-foreground mb-4">
-                {user.email}
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                  {user.role}
-                </span>
-                <Link to="/dashboard">
-                  <Button variant="ghost" size="sm">
-                    View <ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {users.length === 0 ? (
+        <div className="text-center py-12 text-slate-500">No users found.</div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {users.map((user) => (
+            <Card key={user.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  <UsersIcon className="h-4 w-4 mr-2 inline" />
+                  {user.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-muted-foreground mb-4">
+                  {user.email}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                    {user.role}
+                  </span>
+                  <Link to="/dashboard">
+                    <Button variant="ghost" size="sm">
+                      View <ArrowRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

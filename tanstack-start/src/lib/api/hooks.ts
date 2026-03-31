@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 export interface UserPublic {
   id: string;
@@ -7,18 +7,13 @@ export interface UserPublic {
   role: string;
 }
 
-interface UsersResponse {
-  success: boolean;
-  data: UserPublic[];
-}
-
 async function fetchUsers(): Promise<UserPublic[]> {
   const response = await fetch("/api/users", {
     credentials: "include",
   });
   if (!response.ok) throw new Error("Failed to fetch users");
-  const data: UsersResponse = await response.json();
-  return data.data;
+  const data = await response.json();
+  return data.data as UserPublic[];
 }
 
 export function useUsers() {
@@ -26,9 +21,4 @@ export function useUsers() {
     queryKey: ["users"],
     queryFn: fetchUsers,
   });
-}
-
-export function useInvalidateUsers() {
-  const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: ["users"] });
 }
