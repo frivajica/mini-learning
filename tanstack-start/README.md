@@ -6,7 +6,7 @@ Production-ready TanStack Start reference implementation for learning full-stack
 
 - **What**: TanStack Start + TanStack Router + TanStack Query
 - **Why**: Type-safe full-stack React framework with file-based routing
-- **Stack**: React 18, TanStack Start, TanStack Query, Zod, jose
+- **Stack**: React 19, TanStack Start, TanStack Query, Zod, jose, bcrypt
 - **Run**: `yarn install && yarn dev`
 
 ## Quick Start

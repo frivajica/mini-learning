@@ -72,5 +72,12 @@ export const db = {
         tokenRecord.expiresAt = new Date(0);
       }
     },
+    getUserByToken: (token: string) => {
+      const tokenRecord = refreshTokens.find(
+        (t) => t.token === token && t.expiresAt > new Date(),
+      );
+      if (!tokenRecord) return undefined;
+      return users.find((u) => u.id === tokenRecord.userId);
+    },
   },
 };
