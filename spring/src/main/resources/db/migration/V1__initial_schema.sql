@@ -4,6 +4,7 @@
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
+    version BIGINT NOT NULL DEFAULT 0,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -18,6 +19,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 -- Refresh tokens table
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id BIGSERIAL PRIMARY KEY,
+    version BIGINT NOT NULL DEFAULT 0,
     token VARCHAR(500) NOT NULL UNIQUE,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expires_at TIMESTAMP NOT NULL,
