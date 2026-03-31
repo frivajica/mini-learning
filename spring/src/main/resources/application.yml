@@ -58,8 +58,10 @@ server:
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
 
 # JWT configuration
+# IMPORTANT: Set JWT_SECRET environment variable in production!
+# The secret must be at least 256 bits (32+ characters) for HS256
 jwt:
-  secret: ${JWT_SECRET:ThisIsAVeryLongSecretKeyForJWTTokensThatShouldBeAtLeast256BitsLong!!}
+  secret: ${JWT_SECRET}
 
 # Actuator configuration
 management:
