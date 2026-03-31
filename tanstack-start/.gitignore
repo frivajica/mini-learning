@@ -5,15 +5,8 @@ node_modules/
 dist/
 .output/
 
-# Yarn
+# Yarn install state
 .yarn/
-.pnp.*
-!.pnp.cjs
-!.pnp.loader.mjs
-
-# Vite
-vite.config.*.timestamp-*
-vite.config.timestamp_*
 
 # Editor
 *.swp
