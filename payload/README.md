@@ -1,12 +1,12 @@
 # Mini Payload CMS
 
-A production-ready reference implementation for learning Payload CMS with Next.js 16. Featuring collections, access control, authentication, and file storage.
+A production-ready reference implementation for learning Payload CMS with Next.js 15. Featuring collections, access control, authentication, and file storage.
 
 ## TL;DR
 
 - **What**: Self-hosted headless CMS with Next.js frontend
 - **Why**: Learn Payload CMS patterns for content-heavy applications
-- **Stack**: Next.js 16 + Payload CMS 3 + SQLite (dev) / PostgreSQL (prod)
+- **Stack**: Next.js 15 + Payload CMS 3 + SQLite (dev) / PostgreSQL (prod)
 - **Run**: `yarn install && yarn dev` (see Quick Start below)
 
 ---

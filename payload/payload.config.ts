@@ -138,13 +138,21 @@ export default buildConfig({
         },
       ],
       access: {
-        read: ({ req: { user } }) => {
+        read: ({ req: { user }, doc }) => {
           if (user?.role === "admin") return true;
-          return true;
+          if (doc?.status === "published") return true;
+          if (user && doc?.author === user.id) return true;
+          return false;
         },
         create: ({ req: { user } }) => Boolean(user),
-        update: ({ req: { user } }) => Boolean(user),
-        delete: ({ req: { user } }) => user?.role === "admin",
+        update: ({ req: { user }, doc }) => {
+          if (user?.role === "admin") return true;
+          return doc?.author === user?.id;
+        },
+        delete: ({ req: { user }, doc }) => {
+          if (user?.role === "admin") return true;
+          return doc?.author === user?.id;
+        },
       },
     },
     {
@@ -237,6 +245,7 @@ export default buildConfig({
         ],
         adminThumbnail: "thumbnail",
         mimeTypes: ["image/*", "application/pdf"],
+        maxFileSize: 5_000_000,
       },
       fields: [
         {

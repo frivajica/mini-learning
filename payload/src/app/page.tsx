@@ -56,7 +56,7 @@ export default function HomePage() {
 
       <footer className="border-t mt-auto">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          Built with Payload CMS + Next.js 16
+          Built with Payload CMS + Next.js
         </div>
       </footer>
     </div>
