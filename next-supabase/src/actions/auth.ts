@@ -76,5 +76,8 @@ export async function logout() {
 
 export async function refreshSession() {
   const supabase = await createClient();
-  await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return { session };
 }

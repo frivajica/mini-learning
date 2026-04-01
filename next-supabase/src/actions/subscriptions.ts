@@ -91,10 +91,13 @@ export async function cancelSubscription(subscriptionId: string) {
     return { error: "Not authenticated" };
   }
 
-  const { error } = await cancelStripeSubscription(subscriptionId);
-
-  if (error) {
-    return { error };
+  try {
+    await cancelStripeSubscription(subscriptionId);
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error ? err.message : "Failed to cancel subscription",
+    };
   }
 
   const supabase = await createClient();

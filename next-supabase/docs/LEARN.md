@@ -276,6 +276,99 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 5. **Subscribe to real-time** changes only when needed (not by default)
 6. **Validate inputs** with Zod on both client and server
 7. **Revalidate paths** after mutations to update Server Components
+8. **Write tests** for critical paths (auth, mutations, API routes)
+
+## Testing Strategy
+
+This project uses a multi-layered testing approach:
+
+### Unit Tests (Vitest)
+
+Test individual functions and logic:
+
+```typescript
+// src/__tests__/lib/validations.test.ts
+import { describe, it, expect } from "vitest";
+import { loginSchema } from "@/lib/validations";
+
+describe("loginSchema", () => {
+  it("validates correct email and password", () => {
+    const result = loginSchema.safeParse({
+      email: "test@example.com",
+      password: "password123",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid email", () => {
+    const result = loginSchema.safeParse({
+      email: "invalid-email",
+      password: "password123",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+```
+
+### Component Tests (Vitest + Testing Library)
+
+Test React components in isolation:
+
+```typescript
+// src/__tests__/components/button.test.tsx
+import { render, screen } from "@testing-library/react";
+import { Button } from "@/components/ui/button";
+
+describe("Button", () => {
+  it("renders with default variant", () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByRole("button")).toBeInTheDocument();
+  });
+});
+```
+
+### E2E Tests (Playwright)
+
+Test complete user flows:
+
+```typescript
+// e2e/auth.spec.ts
+import { test, expect } from "@playwright/test";
+
+test("user can login with email and password", async ({ page }) => {
+  await page.goto("/login");
+  await page.fill('[name="email"]', "test@example.com");
+  await page.fill('[name="password"]', "password123");
+  await page.click('[type="submit"]');
+  await expect(page).toHaveURL("/dashboard");
+});
+```
+
+### Running Tests
+
+```bash
+# Run unit and component tests
+yarn test
+
+# Run tests in watch mode
+yarn test:watch
+
+# Run E2E tests
+yarn test:e2e
+
+# Run E2E tests with UI
+yarn test:e2e:ui
+```
+
+### CI/CD Pipeline
+
+Tests run automatically on every push via GitHub Actions (see `.github/workflows/test.yml`):
+
+1. **Lint** - ESLint code quality
+2. **Type Check** - TypeScript validation
+3. **Unit Tests** - Vitest unit/component tests
+4. **E2E Tests** - Playwright browser tests
+5. **Build** - Next.js production build
 
 ## Common Issues
 

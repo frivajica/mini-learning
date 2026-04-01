@@ -22,9 +22,12 @@ export function useCreateTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (
-      task: Omit<Task, "id" | "user_id" | "created_at" | "updated_at">,
-    ) => {
+    mutationFn: async (task: {
+      title: string;
+      description?: string | null;
+      status?: "pending" | "in_progress" | "completed";
+      due_date?: string | null;
+    }) => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("tasks")
@@ -82,9 +85,8 @@ export function useDeleteTask() {
 export function useTaskSubscription() {
   const queryClient = useQueryClient();
 
-  return useQuery({
-    queryKey: ["tasks-subscription"],
-    queryFn: () => {
+  return useMutation({
+    mutationFn: async () => {
       const supabase = createClient();
 
       const channel = supabase
@@ -102,6 +104,5 @@ export function useTaskSubscription() {
         supabase.removeChannel(channel);
       };
     },
-    enabled: false,
   });
 }

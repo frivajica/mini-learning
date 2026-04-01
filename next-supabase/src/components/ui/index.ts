@@ -11,3 +11,5 @@ export {
   CardFooter,
 } from "./card";
 export { Form, FormField, SubmitButton } from "./form";
+export { Separator } from "./separator";
+export { GoogleIcon } from "./google-icon";

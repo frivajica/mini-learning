@@ -1,4 +1,4 @@
-export { QueryProvider } from "./providers/query-provider";
+export { QueryProvider } from "@/components/providers/query-provider";
 export {
   useTasks,
   useCreateTask,

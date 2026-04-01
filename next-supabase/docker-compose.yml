@@ -7,7 +7,7 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
       - "5432:5432"
     volumes:
@@ -18,7 +18,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Supabase API Gateway (Kong)
+  # Supabase API Gateway (Kong) with Rate Limiting
   kong:
     image: kong:3.4
     container_name: supabase-kong
@@ -26,7 +26,7 @@ services:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
       KONG_DNS_ORDER: LAST,A,CNAME
-      KONG_PLUGINS: request-transformer,cors,key-auth,acl
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,rate-limiting
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
     ports:
@@ -39,8 +39,10 @@ services:
         condition: service_healthy
       rest:
         condition: service_healthy
+      redis:
+        condition: service_healthy
 
-  # Supabase Auth (GoTrue compatible)
+  # Supabase Auth (GoTrue) with Google OAuth
   auth:
     image: supabase/gotrue:v2.151.0
     container_name: supabase-auth
@@ -59,11 +61,15 @@ services:
       GOTRUE_SMTP_HOST: mail
       GOTRUE_SMTP_PORT: 2500
       GOTRUE_SMTP_SKIP_VERIFY: "true"
-      GOTRUE_URI_ALLOW_LIST: ""
+      GOTRUE_URI_ALLOW_LIST: "*"
       GOTRUE_DISABLE_SIGNUP: "false"
       GOTRUE_OPERATOR_TOKEN: otf-supabase-operator-token
       GOTRUE_MAILER_SUBJECT_CONFIRMATION: "Confirm your signup"
       GOTRUE_SMTP_HOSTNAME_ALLOWED_LIST: ""
+      # Google OAuth
+      GOTRUE_OAUTH_VAULT_GOOGLE: "true"
+      GOTRUE_OAUTH_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOTRUE_OAUTH_GOOGLE_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     ports:
       - "9999:9999"
     volumes:
@@ -187,7 +193,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis for caching
+  # Redis for caching and rate limiting
   redis:
     image: redis:7-alpine
     container_name: supabase-redis
@@ -213,6 +219,29 @@ services:
     labels:
       - "traefik.enable=false"
 
+  # Self-Hosted Sentry
+  sentry:
+    image: sentry:23.11.0
+    container_name: sentry
+    ports:
+      - "9000:9000"
+    environment:
+      SENTRY_SECRET_KEY: ${SENTRY_SECRET_KEY:-dev-secret-key-change-in-production}
+      SENTRY_DB_HOST: db
+      SENTRY_DB_PORT: 5432
+      SENTRY_DB_NAME: sentry
+      SENTRY_DB_USER: postgres
+      SENTRY_DB_PASSWORD: postgres
+      SENTRY_REDIS_HOST: redis
+      SENTRY_REDIS_PORT: 6379
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - sentry_data:/var/lib/sentry/data
+
   # Next.js App (your application)
   app:
     build:
@@ -224,10 +253,13 @@ services:
       NEXT_PUBLIC_SUPABASE_URL: http://kong:8000
       NEXT_PUBLIC_SUPABASE_ANON_KEY: your-anon-key
       SUPABASE_SERVICE_ROLE_KEY: your-service-role-key
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      # Sentry
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
     ports:
       - "3000:3000"
     volumes:
@@ -235,8 +267,10 @@ services:
     depends_on:
       - kong
       - redis
+      - sentry
 
 volumes:
   db_data:
   storage_data:
   redis_data:
+  sentry_data:

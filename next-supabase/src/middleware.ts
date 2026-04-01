@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-const publicRoutes = ["/login", "/register"];
+const publicRoutes = ["/login", "/register", "/"];
 const publicApiRoutes = ["/api/auth", "/api/health"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname.startsWith(route),
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route),
   );
   const isPublicApiRoute = publicApiRoutes.some((route) =>
     pathname.startsWith(route),
@@ -18,10 +19,27 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const supabaseAuthCookie = request.cookies.get("sb-access-token");
-  const supabaseSessionCookie = request.cookies.get("supabase-session");
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll() {
+          // In middleware we can't set cookies, only read them
+          // The response will handle cookie setting
+        },
+      },
+    },
+  );
 
-  if (!supabaseAuthCookie && !supabaseSessionCookie) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);

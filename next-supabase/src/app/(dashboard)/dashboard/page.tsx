@@ -62,7 +62,7 @@ export default function DashboardPage() {
   };
 
   const startRealtime = () => {
-    subscribe.data?.();
+    subscribe.mutate();
   };
 
   return (

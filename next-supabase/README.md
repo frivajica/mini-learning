@@ -1,16 +1,24 @@
 # Mini Next Supabase
 
+![Test](https://github.com/your-org/next-supabase/actions/workflows/test.yml/badge.svg)
+![Deploy](https://github.com/your-org/next-supabase/actions/workflows/deploy.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 A production-ready reference implementation for learning Supabase patterns with Next.js 15. Featuring authentication, real-time subscriptions, React Query caching, and Stripe subscriptions.
 
 ## Features
 
-- **Supabase Auth** - Email/password authentication with httpOnly cookies
+- **Supabase Auth** - Email/password + Google OAuth with httpOnly cookies
 - **Real-time Subscriptions** - Live task updates with Supabase Realtime
 - **React Query** - Client-side caching and optimistic updates
 - **Stripe Subscriptions** - Monthly subscription payments
+- **Kong Rate Limiting** - Redis-backed API rate limiting
+- **Self-hosted Sentry** - Error tracking and monitoring
 - **Next.js 15 App Router** - Server Components, Server Actions, Middleware
 - **TypeScript** - Full type safety
 - **Tailwind CSS** - Utility-first styling
+- **Testing** - Vitest (unit/component) + Playwright (E2E)
+- **CI/CD** - GitHub Actions with lint, typecheck, test, and build pipelines
 
 ## Tech Stack
 
@@ -19,10 +27,15 @@ A production-ready reference implementation for learning Supabase patterns with 
 | Framework    | Next.js 15 (App Router) |
 | Database     | Supabase PostgreSQL     |
 | Auth         | Supabase Auth           |
+| Real-time    | Supabase Realtime       |
 | Client Cache | React Query             |
 | Payments     | Stripe                  |
+| API Gateway  | Kong (Rate Limiting)    |
+| Monitoring   | Self-hosted Sentry      |
 | Validation   | Zod                     |
 | Styling      | Tailwind CSS            |
+| Testing      | Vitest + Playwright     |
+| CI/CD        | GitHub Actions          |
 
 ## Quick Start
 
@@ -105,6 +118,14 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRO_PRICE_ID=price_...
 
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Sentry (Self-hosted)
+SENTRY_DSN=https://your-sentry-dsn@sentry.example.com/your-project
+SENTRY_SECRET_KEY=your_sentry_secret_key
+
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -113,8 +134,13 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 1. **[LEARN.md](docs/LEARN.md)** - Supabase patterns and concepts
 2. **[AUTH_INFO.md](docs/AUTH_INFO.md)** - Authentication deep dive
-3. **[CACHING.md](docs/CACHING.md)** - Caching strategies
-4. **[STRIPE.md](docs/STRIPE.md)** - Stripe subscription integration
+3. **[GOOGLE_OAUTH.md](docs/GOOGLE_OAUTH.md)** - Google OAuth setup
+4. **[CACHING.md](docs/CACHING.md)** - Caching strategies
+5. **[STRIPE.md](docs/STRIPE.md)** - Stripe subscription integration
+6. **[KONG.md](docs/KONG.md)** - Kong API Gateway and rate limiting
+7. **[TESTING.md](docs/TESTING.md)** - Testing strategies (Vitest + Playwright)
+8. **[INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** - Docker architecture
+9. **[PRODUCTION.md](docs/PRODUCTION.md)** - Production deployment
 
 ## Key Patterns
 
@@ -184,19 +210,33 @@ const channel = supabase
 
 ## Documentation
 
-| File                                   | Description                           |
-| -------------------------------------- | ------------------------------------- |
-| [docs/LEARN.md](docs/LEARN.md)         | Supabase patterns and database design |
-| [docs/AUTH_INFO.md](docs/AUTH_INFO.md) | Authentication architecture           |
-| [docs/CACHING.md](docs/CACHING.md)     | React Query and caching strategies    |
-| [docs/STRIPE.md](docs/STRIPE.md)       | Stripe subscription integration       |
+| File                                             | Description                           |
+| ------------------------------------------------ | ------------------------------------- |
+| [docs/LEARN.md](docs/LEARN.md)                   | Supabase patterns and database design |
+| [docs/AUTH_INFO.md](docs/AUTH_INFO.md)           | Authentication architecture           |
+| [docs/CACHING.md](docs/CACHING.md)               | React Query and caching strategies    |
+| [docs/STRIPE.md](docs/STRIPE.md)                 | Stripe subscription integration       |
+| [docs/GOOGLE_OAUTH.md](docs/GOOGLE_OAUTH.md)     | Google OAuth setup guide              |
+| [docs/KONG.md](docs/KONG.md)                     | Kong API Gateway and rate limiting    |
+| [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) | Docker architecture                   |
+| [docs/PRODUCTION.md](docs/PRODUCTION.md)         | Production deployment guide           |
+| [docs/TESTING.md](docs/TESTING.md)               | Testing strategy and examples         |
 
 ## Scripts
 
 ```bash
+# Development
 yarn dev          # Start development server
 yarn build        # Build for production
 yarn start        # Start production server
+
+# Code Quality
 yarn lint         # Run ESLint
 yarn typecheck    # Run TypeScript checks
+
+# Testing
+yarn test         # Run unit and component tests (Vitest)
+yarn test:e2e     # Run end-to-end tests (Playwright)
+yarn test:e2e:ui # Run E2E tests with UI
+yarn test:watch   # Run tests in watch mode
 ```
