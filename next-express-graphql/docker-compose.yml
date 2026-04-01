@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=/app/data.db
+      - JWT_SECRET=supersecretkey123
+      - PORT=4000
+    volumes:
+      - backend_data:/app
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_GRAPHQL_HTTP_URL=http://backend:4000/graphql
+      - NEXT_PUBLIC_GRAPHQL_WS_URL=ws://backend:4000/graphql
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  backend_data:
