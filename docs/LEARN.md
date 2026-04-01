@@ -86,6 +86,69 @@ Learn:
 
 ---
 
+### 6. Next.js + Supabase (Real-time & Payments)
+
+**Why**: Learn backend-as-a-service patterns with Supabase, real-time subscriptions, and Stripe payments.
+
+Learn:
+
+- Supabase Auth with httpOnly cookies
+- Row Level Security (RLS) policies
+- Real-time database subscriptions
+- Server Actions for mutations
+- React Query integration
+- Stripe Checkout and Customer Portal
+- Supabase vs traditional backend tradeoffs
+
+**Next directory**: [next-supabase/](next-supabase/)
+
+---
+
+### 7. TanStack Start (Alternative Frontend)
+
+**Why**: Type-safe React framework with TanStack Router for projects needing different patterns than Next.js.
+
+Learn:
+
+- File-based routing with TanStack Router
+- Server functions (RPC-style)
+- Type-safe API contracts
+- React Query integration
+
+**Next directory**: [tanstack-start/](tanstack-start/)
+
+---
+
+### 8. Spring Boot (Enterprise Java)
+
+**Why**: Enterprise-grade Java framework with Spring Security and JPA.
+
+Learn:
+
+- Spring Security configuration
+- JPA entities and repositories
+- Dependency injection
+- Security filter chain
+- JWT authentication in Java
+
+**Next directory**: [spring/](spring/)
+
+---
+
+### 9. Spring Boot + Lombok (Reduced Boilerplate)
+
+**Why**: Same Spring Boot but with Lombok for industry-standard reduced boilerplate.
+
+Learn:
+
+- Lombok annotations (@Data, @Getter, etc.)
+- Cleaner entity definitions
+- Industry-standard Java patterns
+
+**Next directory**: [spring-lombok/](spring-lombok/)
+
+---
+
 ## When to Use Each
 
 | Scenario                      | Use             |
@@ -95,9 +158,11 @@ Learn:
 | Quick API, Python             | FastAPI         |
 | Large team, scalable Node.js  | NestJS          |
 | Full-stack React app          | Next.js         |
+| Real-time + payments (BaaS)   | Next-Supabase   |
 | Microservices                 | NestJS          |
 | Learning backend fundamentals | Express (PG)    |
 | Learning document databases   | Express (Mongo) |
+| Learning BaaS patterns        | Next-Supabase   |
 
 ## Study Tips
 
