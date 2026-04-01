@@ -44,7 +44,7 @@ yarn dev
 
 | Layer     | Technology          | Why                           |
 | --------- | ------------------- | ----------------------------- |
-| Framework | Next.js 16          | App Router, Server Components |
+| Framework | Next.js 15          | App Router, Server Components |
 | Language  | TypeScript 5.1+     | Type safety                   |
 | CMS       | Payload CMS 3.x     | Self-hosted, TypeScript-first |
 | Database  | SQLite (dev)        | Zero-config development       |
