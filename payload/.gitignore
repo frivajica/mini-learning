@@ -1,0 +1,12 @@
+node_modules
+.next
+.env
+.env.local
+payload.db
+payload.db-shm
+payload.db-wal
+uploads
+*.log
+.DS_Store
+coverage
+.playwright
