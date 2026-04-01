@@ -21,10 +21,22 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const {
+      page = 1,
+      limit = 10,
+      ...filters
+    } = Object.fromEntries(req.nextUrl.searchParams);
+
     const data = await payload.find({
       collection: slug,
-      limit: 10,
+      page: Number(page),
+      limit: Math.min(Number(limit), 100),
+      where: Object.keys(filters).length > 0 ? filters : undefined,
     });
+
+    if (data.docs.length === 0 && page > 1) {
+      return NextResponse.json({ error: "No more results" }, { status: 404 });
+    }
 
     return NextResponse.json(data);
   } catch (error) {
@@ -51,6 +63,13 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
+    if (!body || Object.keys(body).length === 0) {
+      return NextResponse.json(
+        { error: "Request body is required" },
+        { status: 400 },
+      );
+    }
+
     const data = await payload.create({
       collection: slug,
       data: body,
@@ -59,6 +78,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error("API POST error:", error);
+
+    if (error instanceof Error && error.message.includes("validation")) {
+      return NextResponse.json(
+        { error: "Validation error", details: error.message },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

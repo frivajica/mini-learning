@@ -9,3 +9,12 @@ export async function getPayload() {
   }
   return cachedPayload;
 }
+
+export async function getPayloadWithCacheControl() {
+  const instance = await getPayload();
+  return instance;
+}
+
+export function invalidatePayloadCache() {
+  cachedPayload = null;
+}
