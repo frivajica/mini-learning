@@ -79,22 +79,33 @@ describe("loginSchema", () => {
 
 ### Mocking Supabase
 
-Mock the Supabase client for Server Action tests:
+Mock the Supabase client for Server Action tests using shared mock references:
 
 ```typescript
-vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(() => ({
-    auth: {
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    },
-    from: vi.fn(() => ({
-      insert: vi.fn(),
-      update: vi.fn(),
-    })),
+const authMock = {
+  signInWithPassword: vi.fn(),
+  signUp: vi.fn(),
+  signOut: vi.fn(),
+  getUser: vi.fn(),
+};
+
+const supabaseMock = {
+  auth: authMock,
+  from: vi.fn(() => ({
+    insert: vi.fn(),
+    update: vi.fn(),
   })),
+};
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn(() => supabaseMock),
 }));
+
+// In your tests, configure mocks like:
+authMock.signInWithPassword.mockResolvedValue({
+  data: { user: { id: "123" } },
+  error: null,
+});
 ```
 
 ## Component Tests (React Testing Library)
