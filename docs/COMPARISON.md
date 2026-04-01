@@ -6,11 +6,11 @@ Side-by-side comparison of the same features across all frameworks.
 
 ## Project Structure
 
-### Express
+### Express + PostgreSQL
 
 ```
 src/
-├── controllers/     # Request handlers
+├── controller/     # Request handlers
 ├── routes/         # HTTP route definitions
 ├── services/       # Business logic
 ├── repositories/   # Database queries
@@ -18,6 +18,20 @@ src/
 ├── db/            # Drizzle ORM setup
 ├── config/        # Environment config
 └── server.ts      # App entry point
+```
+
+### Express + MongoDB
+
+```
+src/
+├── config/         # Zod validation, MongoDB, Redis
+├── models/         # Mongoose models (User, Product, Category, Order)
+├── services/       # Business logic
+├── controllers/   # Request handlers
+├── routes/        # Express routes
+├── middleware/    # Auth, RBAC, rate limiting, error handling
+├── utils/         # Logger, AppError, asyncHandler
+└── types/         # TypeScript type exports
 ```
 
 ### FastAPI

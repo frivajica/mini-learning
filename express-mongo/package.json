@@ -1,0 +1,50 @@
+{
+  "name": "mini-mongo-express",
+  "version": "1.0.0",
+  "description": "Express.js API with MongoDB - Learn MongoDB patterns with Mongoose",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/bcrypt": "^5.0.2",
+    "@types/compression": "^1.7.5",
+    "@types/cookie-parser": "^1.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.11",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.6",
+    "eslint": "^10.1.0",
+    "eslint-plugin-import": "^2.32.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.58.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

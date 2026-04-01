@@ -10,7 +10,8 @@ Production-ready reference implementations for learning modern backend and front
 | -------------------- | ---------------------------------- | ----------------------------------------------------------- |
 | Next.js 16           | [next/](next/)                     | React framework with App Router, JWT auth, React Query      |
 | TanStack Start       | [tanstack-start/](tanstack-start/) | Full-stack React with file routing, server functions        |
-| Express              | [express/](express/)               | Minimal Node.js API with TypeScript, Drizzle ORM            |
+| Express + PostgreSQL | [express/](express/)               | Minimal Node.js API with TypeScript, Drizzle ORM            |
+| Express + MongoDB    | [express-mongo/](express-mongo/)   | Express API with MongoDB, Mongoose, Redis caching           |
 | NestJS               | [nest/](nest/)                     | Scalable Node.js architecture, modules, DI                  |
 | FastAPI              | [fastapi/](fastapi/)               | Python async API with Pydantic, SQLAlchemy                  |
 | Spring Boot          | [spring/](spring/)                 | Java framework with Spring Security, JPA, DI                |
@@ -27,8 +28,11 @@ cd next && yarn install && yarn dev
 # TanStack Start
 cd tanstack-start && yarn install && yarn dev
 
-# Express
+# Express + PostgreSQL
 cd express && yarn install && yarn dev
+
+# Express + MongoDB
+cd express-mongo && yarn install && yarn dev
 
 # NestJS
 cd nest && yarn install && yarn start:dev
@@ -52,18 +56,18 @@ cd spring-lombok && ./mvnw spring-boot:run
 
 ## Tech Stack
 
-| Category    | Next.js     | TanStack Start | Express    | NestJS          | FastAPI     | Spring Boot       | Spring Boot + Lombok |
-| ----------- | ----------- | -------------- | ---------- | --------------- | ----------- | ----------------- | -------------------- |
-| Language    | TypeScript  | TypeScript     | TypeScript | TypeScript      | Python      | Java 21           | Java 21              |
-| Framework   | Next.js 16  | TanStack Start | Express    | NestJS          | FastAPI     | Spring Boot 3.5   | Spring Boot 3.5      |
-| Database    | PostgreSQL  | PostgreSQL     | PostgreSQL | PostgreSQL      | PostgreSQL  | PostgreSQL        | PostgreSQL           |
-| ORM         | Drizzle     | Drizzle        | Drizzle    | TypeORM/Prisma  | SQLAlchemy  | Spring Data JPA   | Spring Data JPA      |
-| Auth        | NextAuth.js | Server fns     | JWT        | @nestjs/jwt     | python-jose | Spring Security   | Spring Security      |
-| Cache       | Redis       | Redis          | Redis      | Redis           | Redis       | Redis             | Redis                |
-| Validation  | Zod         | Zod            | Zod        | class-validator | Pydantic    | Jakarta Bean Val. | Jakarta Bean Val.    |
-| Routing     | App Router  | File-based     | Express    | Modules         | FastAPI     | Controllers       | Controllers          |
-| Boilerplate | Manual      | Minimal        | Manual     | Opinionated     | Minimal     | Manual            | Lombok               |
-| API Style   | REST        | REST           | REST       | REST            | REST        | REST              | REST                 |
+| Category    | Next.js     | TanStack Start | Express (PG) | Express (Mongo) | NestJS          | FastAPI     | Spring Boot       | Spring Boot + Lombok |
+| ----------- | ----------- | -------------- | ------------ | --------------- | --------------- | ----------- | ----------------- | -------------------- |
+| Language    | TypeScript  | TypeScript     | TypeScript   | TypeScript      | TypeScript      | Python      | Java 21           | Java 21              |
+| Framework   | Next.js 16  | TanStack Start | Express      | Express         | NestJS          | FastAPI     | Spring Boot 3.5   | Spring Boot 3.5      |
+| Database    | PostgreSQL  | PostgreSQL     | PostgreSQL   | MongoDB         | PostgreSQL      | PostgreSQL  | PostgreSQL        | PostgreSQL           |
+| ORM         | Drizzle     | Drizzle        | Drizzle      | Mongoose        | TypeORM/Prisma  | SQLAlchemy  | Spring Data JPA   | Spring Data JPA      |
+| Auth        | NextAuth.js | Server fns     | JWT          | JWT + RBAC      | @nestjs/jwt     | python-jose | Spring Security   | Spring Security      |
+| Cache       | Redis       | Redis          | Redis        | Redis           | Redis           | Redis       | Redis             | Redis                |
+| Validation  | Zod         | Zod            | Zod          | Zod             | class-validator | Pydantic    | Jakarta Bean Val. | Jakarta Bean Val.    |
+| Routing     | App Router  | File-based     | Express      | Express         | Modules         | FastAPI     | Controllers       | Controllers          |
+| Boilerplate | Manual      | Minimal        | Manual       | Manual          | Opinionated     | Minimal     | Manual            | Lombok               |
+| API Style   | REST        | REST           | REST         | REST            | REST            | REST        | REST              | REST                 |
 
 ## Features
 
@@ -74,8 +78,10 @@ Each project implements the same feature set for fair comparison:
 - Rate limiting
 - Input validation
 - Error handling
-- Database migrations
+- Database migrations (PostgreSQL) / Schema validation (MongoDB)
 - Docker compose setup
+
+> **Note**: Express + MongoDB uses document embedding/referencing patterns instead of SQL joins. See [express-mongo/docs/MONGODB_VS_POSTGRES.md](express-mongo/docs/MONGODB_VS_POSTGRES.md) for comparison.
 
 ## Learning Path
 

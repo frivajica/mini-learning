@@ -6,7 +6,7 @@ Follow this path to master full-stack development progressively.
 
 ## Recommended Order
 
-### 1. Express (Start Here)
+### 1. Express + PostgreSQL (Start Here)
 
 **Why**: Minimal setup, clear patterns, direct control.
 
@@ -15,14 +15,30 @@ Learn:
 - HTTP basics (request/response)
 - Middleware pattern
 - Routing
-- Database queries
+- Database queries with Drizzle ORM
 - Authentication middleware
 
 **Next directory**: [express/](express/)
 
 ---
 
-### 2. FastAPI
+### 2. Express + MongoDB
+
+**Why**: Learn document database patterns vs relational. Same Express patterns, different data model.
+
+Learn:
+
+- MongoDB document model
+- Mongoose ODM schema validation
+- Embedding vs referencing patterns
+- Schema flexibility
+- Redis caching
+
+**Next directory**: [express-mongo/](express-mongo/)
+
+---
+
+### 3. FastAPI
 
 **Why**: Same backend concepts but with Python's async simplicity.
 
@@ -37,7 +53,7 @@ Learn:
 
 ---
 
-### 3. NestJS
+### 4. NestJS
 
 **Why**: Scalable architecture for Node.js.
 
@@ -53,7 +69,7 @@ Learn:
 
 ---
 
-### 4. Next.js (Finish Here)
+### 5. Next.js (Finish Here)
 
 **Why**: Full-stack with React frontend + Node.js backend.
 
@@ -72,14 +88,16 @@ Learn:
 
 ## When to Use Each
 
-| Scenario                      | Use     |
-| ----------------------------- | ------- |
-| Simple API, Node.js           | Express |
-| Quick API, Python             | FastAPI |
-| Large team, scalable Node.js  | NestJS  |
-| Full-stack React app          | Next.js |
-| Microservices                 | NestJS  |
-| Learning backend fundamentals | Express |
+| Scenario                      | Use             |
+| ----------------------------- | --------------- |
+| Simple API, Node.js           | Express (PG)    |
+| Document data, Schema flex    | Express (Mongo) |
+| Quick API, Python             | FastAPI         |
+| Large team, scalable Node.js  | NestJS          |
+| Full-stack React app          | Next.js         |
+| Microservices                 | NestJS          |
+| Learning backend fundamentals | Express (PG)    |
+| Learning document databases   | Express (Mongo) |
 
 ## Study Tips
 
