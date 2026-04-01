@@ -3,6 +3,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockRevalidatePath = vi.fn();
 const mockRedirect = vi.fn();
 
+const authMock = {
+  signInWithPassword: vi.fn(),
+  signUp: vi.fn(),
+  signOut: vi.fn(),
+  getUser: vi.fn(),
+};
+
+const supabaseMock = {
+  auth: authMock,
+  from: vi.fn(() => ({
+    insert: vi.fn(),
+    update: vi.fn(),
+  })),
+};
+
 vi.mock("next/cache", () => ({
   revalidatePath: mockRevalidatePath,
 }));
@@ -12,18 +27,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(() => ({
-    auth: {
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-      getUser: vi.fn(),
-    },
-    from: vi.fn(() => ({
-      insert: vi.fn(),
-      update: vi.fn(),
-    })),
-  })),
+  createClient: vi.fn(() => supabaseMock),
 }));
 
 describe("login action", () => {
@@ -45,11 +49,7 @@ describe("login action", () => {
   });
 
   it("calls revalidatePath on success", async () => {
-    const { createClient } = await import("@/lib/supabase/server");
-    const mockClient = createClient as ReturnType<typeof vi.fn>;
-    const clientMock = mockClient();
-
-    vi.mocked(clientMock.auth.signInWithPassword).mockResolvedValue({
+    authMock.signInWithPassword.mockResolvedValue({
       data: { user: { id: "123" } },
       error: null,
     });
@@ -93,18 +93,14 @@ describe("logout action", () => {
   });
 
   it("calls signOut and redirects", async () => {
-    const { createClient } = await import("@/lib/supabase/server");
-    const mockClient = createClient as ReturnType<typeof vi.fn>;
-    const clientMock = mockClient();
-
-    vi.mocked(clientMock.auth.signOut).mockResolvedValue({
+    authMock.signOut.mockResolvedValue({
       error: null,
     });
 
     const { logout } = await import("@/actions/auth");
     await logout();
 
-    expect(clientMock.auth.signOut).toHaveBeenCalled();
+    expect(authMock.signOut).toHaveBeenCalled();
     expect(mockRedirect).toHaveBeenCalledWith("/login");
   });
 });

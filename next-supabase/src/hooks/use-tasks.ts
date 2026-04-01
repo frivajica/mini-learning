@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Task } from "@/lib/supabase/types";
 
 export function useTasks() {
-  return useQuery({
+  return useQuery<Task[]>({
     queryKey: ["tasks"],
     queryFn: async () => {
       const supabase = createClient();

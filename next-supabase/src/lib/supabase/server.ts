@@ -27,7 +27,7 @@ export async function createClient() {
                 options as Parameters<typeof cookieStore.set>[2],
               ),
             );
-          } catch (error) {
+          } catch {
             // Server Component - cookie setting is handled differently by Next.js
             // This is expected behavior in Server Components where cookies()
             // can only be read, not written. The actual cookie writing happens

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-interface GoogleIconProps extends React.SVGProps<SVGSVGElement> {}
+type GoogleIconProps = React.SVGProps<SVGSVGElement>;
 
 export function GoogleIcon({ className, ...props }: GoogleIconProps) {
   return (

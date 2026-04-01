@@ -50,7 +50,8 @@ test.describe("Stripe Subscriptions", () => {
       test.skip();
     }
     // If user has active subscription, should show manage button instead
-    const hasActiveSubscription = await page.locator("text=/active/i").count() > 0;
+    const hasActiveSubscription =
+      (await page.locator("text=/active/i").count()) > 0;
     if (hasActiveSubscription) {
       await expect(page.locator('button:has-text("Manage")')).toBeVisible();
     }
@@ -62,7 +63,9 @@ test.describe("Stripe Subscriptions", () => {
       test.skip();
     }
     // Should show some status indication
-    const hasStatusIndicator = await page.locator('[class*="badge"], [class*="status"], text=/active|text=/pending/);
+    const hasStatusIndicator = await page.locator(
+      '[class*="badge"], [class*="status"], text=/(active|pending)/',
+    );
     await expect(hasStatusIndicator.first()).toBeVisible();
   });
 });
@@ -78,9 +81,15 @@ test.describe("Stripe Checkout Flow", () => {
     await page.click('button:has-text("Subscribe")');
 
     // Should redirect to Stripe Checkout
-    await page.waitForURL(/checkout\.stripe\.com|stripe\.com\/checkout/, { timeout: 10000 }).catch(() => {
-      // If no Stripe keys configured, may not redirect
-      console.log("Stripe checkout not triggered - check environment variables");
-    });
+    await page
+      .waitForURL(/checkout\.stripe\.com|stripe\.com\/checkout/, {
+        timeout: 10000,
+      })
+      .catch(() => {
+        // If no Stripe keys configured, may not redirect
+        console.log(
+          "Stripe checkout not triggered - check environment variables",
+        );
+      });
   });
 });
