@@ -2,6 +2,8 @@
 
 Understanding the authentication implementation in this Payload CMS project.
 
+> **Note**: This project implements **email/password authentication**. The Google OAuth section below shows the _pattern_ for adding OAuth, but OAuth is **not currently enabled** in this project. Env vars `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are reserved for future OAuth implementation.
+
 ---
 
 ## Table of Contents

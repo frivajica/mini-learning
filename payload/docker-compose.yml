@@ -12,8 +12,6 @@ services:
       - PAYLOAD_SECRET_KEY=${PAYLOAD_SECRET_KEY}
       - DATABASE_URI=${DATABASE_URI:-file:./data/payload.db}
       - NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - payload-data:/app/data
     depends_on:

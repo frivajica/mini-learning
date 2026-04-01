@@ -33,7 +33,7 @@ yarn dev
 - ✅ **Collections**: Posts, Categories, Tags, Media with relationships
 - ✅ **Access Control**: Public/authenticated/admin roles
 - ✅ **Draft/Publish**: Content workflow with status management
-- ✅ **Authentication**: Email/password + Google OAuth
+- ✅ **Authentication**: Email/password (Google OAuth pattern documented)
 - ✅ **File Storage**: Local filesystem + S3-compatible pattern
 - ✅ **Admin UI**: Customized Payload admin panel
 - ✅ **TypeScript**: Full type safety with generated types
@@ -154,8 +154,8 @@ Admin (role = admin):
 | PAYLOAD_SECRET_KEY     | Yes      | -                     | Secret key (32+ chars)         |
 | DATABASE_URI           | No       | file:./payload.db     | SQLite/PostgreSQL connection   |
 | NEXT_PUBLIC_SERVER_URL | No       | http://localhost:3000 | Server URL for OAuth callbacks |
-| GOOGLE_CLIENT_ID       | No       | -                     | Google OAuth client ID         |
-| GOOGLE_CLIENT_SECRET   | No       | -                     | Google OAuth client secret     |
+| GOOGLE_CLIENT_ID       | No       | -                     | Google OAuth (pattern only)    |
+| GOOGLE_CLIENT_SECRET   | No       | -                     | Google OAuth (pattern only)    |
 
 ---
 
@@ -189,9 +189,9 @@ For production, the Dockerfile builds a standalone Node.js application.
 
 ## Documentation
 
-- [LEARN.md](LEARN.md) - Payload CMS concepts, comparisons to other CMS/ORMs
-- [AUTH_INFO.md](AUTH_INFO.md) - Authentication patterns deep-dive
-- [STORAGE.md](STORAGE.md) - File storage strategies (local vs S3)
+- [docs/guides/LEARN.md](docs/guides/LEARN.md) - Payload CMS concepts, comparisons to other CMS/ORMs
+- [docs/guides/AUTH_INFO.md](docs/guides/AUTH_INFO.md) - Authentication patterns deep-dive
+- [docs/guides/STORAGE.md](docs/guides/STORAGE.md) - File storage strategies (local vs S3)
 
 ---
 
