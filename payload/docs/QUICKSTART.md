@@ -65,11 +65,12 @@ NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
 ```bash
 yarn dev          # Start development server
-yarn build       # Build for production
-yarn start       # Start production server
-yarn test        # Run unit tests
-yarn test:e2e    # Run E2E tests
-yarn lint        # Run ESLint
+yarn build        # Build for production
+yarn start        # Start production server
+yarn test         # Run unit tests
+yarn test:e2e     # Run E2E tests
+yarn lint         # Run ESLint
+yarn typecheck    # Run TypeScript checks
 ```
 
 ## 6. Default Collections
@@ -88,3 +89,10 @@ yarn lint        # Run ESLint
 - Draft/publish workflow
 - Media library with image processing
 - Role-based access control (admin/user)
+
+## 8. Health Checks
+
+After starting the server:
+
+- **Liveness**: `GET /api/health/live` → Returns 200 OK
+- **Readiness**: `GET /api/health/ready` → Returns 200 OK if DB connected, 503 if not

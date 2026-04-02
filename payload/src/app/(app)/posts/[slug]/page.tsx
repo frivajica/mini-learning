@@ -3,28 +3,34 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPayload } from "@/lib/payload";
 import { formatDate } from "@/lib/utils";
+import { lexicalToHtml } from "@/lib/lexical";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
 async function getPostBySlug(slug: string) {
-  const payload = await getPayload();
+  try {
+    const payload = await getPayload();
 
-  const { docs: posts } = await payload.find({
-    collection: "posts",
-    where: {
-      slug: {
-        equals: slug,
+    const { docs: posts } = await payload.find({
+      collection: "posts",
+      where: {
+        slug: {
+          equals: slug,
+        },
+        status: {
+          equals: "published",
+        },
       },
-      status: {
-        equals: "published",
-      },
-    },
-    depth: 2,
-  });
+      depth: 2,
+    });
 
-  return posts[0] || null;
+    return posts[0] || null;
+  } catch (error) {
+    console.error("Failed to fetch post:", error);
+    return null;
+  }
 }
 
 export async function generateMetadata({
@@ -112,7 +118,7 @@ export default async function PostPage({ params }: PageProps) {
             {typeof post.content === "object" && post.content && (
               <div
                 dangerouslySetInnerHTML={{
-                  __html: JSON.stringify(post.content),
+                  __html: await lexicalToHtml(post.content),
                 }}
               />
             )}

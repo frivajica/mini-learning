@@ -7,19 +7,27 @@ How the pieces fit together.
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                      Frontend                           │
-│         Next.js 15 + Tailwind CSS + React 19            │
+│         Next.js 16 + Tailwind CSS + React 19             │
 └─────────────────────┬───────────────────────────────────┘
-                      │ HTTP / GraphQL
-                      ▼
+                       │ HTTP / GraphQL
+                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                   Payload CMS 3.0                       │
+│                   Payload CMS 3.x                       │
 │         Admin UI + REST/GraphQL API                     │
 └─────────────────────┬───────────────────────────────────┘
-                      │ SQL
-                      ▼
+                       │ SQL
+                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│         SQLite (dev) / PostgreSQL (prod)               │
+│         SQLite (dev) / PostgreSQL (prod)                │
 └─────────────────────────────────────────────────────────┘
+```
+
+## Request Pipeline (Next.js 16 Proxy)
+
+```
+Request → proxy.ts → Security Headers → Auth Check → Route Handler
+                ↓
+         Rate Limiting (API routes)
 ```
 
 ## Project Structure
@@ -35,7 +43,14 @@ payload/
 │   │   │           └── page.tsx  # Single post
 │   │   ├── (payload)/        # Payload admin routes
 │   │   │   ├── admin/        # Admin UI
-│   │   │   └── api/          # Custom API endpoints
+│   │   │   └── api/         # Payload REST API
+│   │   │       └── [...slug]/ # Custom API endpoints
+│   │   ├── api/
+│   │   │   └── health/      # Health check endpoints
+│   │   │       ├── live/
+│   │   │       └── ready/
+│   │   ├── error.tsx         # Error boundary
+│   │   ├── not-found.tsx     # Custom 404
 │   │   ├── layout.tsx
 │   │   └── page.tsx          # Homepage
 │   ├── collections/           # Modular collection configs
@@ -46,14 +61,15 @@ payload/
 │   │   ├── Tags.ts
 │   │   └── Media.ts
 │   ├── components/
-│   │   ├── PostCard.tsx
-│   │   └── ui/
+│   │   └── PostCard.tsx
 │   └── lib/
-│       ├── payload.ts         # Payload client singleton
+│       ├── payload.ts          # Payload client singleton
+│       ├── lexical.ts          # Lexical → HTML converter
+│       ├── rate-limit.ts      # Rate limiting utility
 │       └── utils.ts           # Utility functions
-├── docs/                      # Documentation
-├── payload.config.ts          # Payload CMS configuration
-├── docker-compose.yml         # Docker setup
+├── proxy.ts                    # Next.js 16 Proxy (middleware)
+├── payload.config.ts            # Payload CMS configuration
+├── docker-compose.yml          # Docker setup with HEALTHCHECK
 └── package.json
 ```
 
@@ -84,18 +100,8 @@ Visitor → Frontend Page → Payload API → Database
 ### Custom API
 
 ```
-Client → /api/[slug] → Payload Instance → Database
+Client → /api/[slug] → Rate Limiting → Payload Instance → Database
 ```
-
-## Collections
-
-| Collection | Slug         | Purpose               | Auth        |
-| ---------- | ------------ | --------------------- | ----------- |
-| Users      | `users`      | Authentication, roles | Required    |
-| Posts      | `posts`      | Blog content          | Conditional |
-| Categories | `categories` | Hierarchical taxonomy | Conditional |
-| Tags       | `tags`       | Flat taxonomy         | Conditional |
-| Media      | `media`      | File uploads          | Conditional |
 
 ## Key Patterns
 
@@ -103,13 +109,15 @@ Client → /api/[slug] → Payload Instance → Database
 2. **Modular Collections** - Each collection in separate file
 3. **Role-Based Access** - Admin vs User permissions
 4. **Draft/Publish** - Posts have draft/publish workflow
+5. **Lexical Rendering** - `src/lib/lexical.ts` converts rich text to HTML
+6. **Rate Limiting** - In-memory store with 100 req/min limit
 
 ## Docker Setup
 
 | Service    | Image         | Purpose             |
 | ---------- | ------------- | ------------------- |
-| `app`      | Dockerfile    | Next.js + Payload   |
-| `postgres` | postgres:16.4 | PostgreSQL database |
+| `app`      | Dockerfile    | Next.js + Payload (with HEALTHCHECK) |
+| `postgres` | postgres:16-alpine | PostgreSQL database |
 
 ## Testing
 

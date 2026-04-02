@@ -10,10 +10,10 @@ describe("formatDate", () => {
   });
 
   it("handles Date object", () => {
-    const date = new Date("2024-01-01T00:00:00.000Z");
+    const date = new Date("2024-06-15T12:00:00.000Z");
     const result = formatDate(date);
-    expect(result).toContain("January");
-    expect(result).toContain("1");
+    expect(result).toContain("June");
+    expect(result).toContain("15");
     expect(result).toContain("2024");
   });
 });

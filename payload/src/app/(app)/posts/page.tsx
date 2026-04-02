@@ -8,20 +8,25 @@ export const metadata = {
 };
 
 async function getPublishedPosts() {
-  const payload = await getPayload();
+  try {
+    const payload = await getPayload();
 
-  const { docs: posts } = await payload.find({
-    collection: "posts",
-    where: {
-      status: {
-        equals: "published",
+    const { docs: posts } = await payload.find({
+      collection: "posts",
+      where: {
+        status: {
+          equals: "published",
+        },
       },
-    },
-    depth: 2,
-    sort: "-publishedAt",
-  });
+      depth: 2,
+      sort: "-publishedAt",
+    });
 
-  return posts;
+    return posts;
+  } catch (error) {
+    console.error("Failed to fetch posts:", error);
+    return [];
+  }
 }
 
 export default async function PostsPage() {
