@@ -7,14 +7,17 @@ A production-ready Product Catalog API demonstrating MongoDB patterns with Mongo
 - **MongoDB with Mongoose ODM** - Schema validation, embedding, and referencing patterns
 - **Full JWT Authentication** - Access tokens (15m) + refresh tokens (7d) with HTTP-only cookies
 - **Role-Based Access Control (RBAC)** - ADMIN role for CRUD operations on products, categories; USER role for orders
-- **Redis Caching** - Product and category caching with automatic invalidation
+- **Redis Caching** - Product and category caching with automatic invalidation using Redis Sets (non-blocking)
 - **Rate Limiting** - Global and auth-specific rate limits
 - **Locked Prices** - Product prices are captured at order time (price cannot change after order)
 - **RESTful API** - Products, Categories, Orders, and Auth endpoints
-- **TypeScript** - Full type safety
+- **TypeScript** - Full type safety with strict mode
 - **ESLint** - Code linting with TypeScript support
 - **Zod Validation** - Request validation
 - **Docker Support** - MongoDB and Redis via docker-compose
+- **Health Checks** - Liveness and readiness probes for container orchestration
+- **Connection Retry** - MongoDB connection with exponential backoff retry
+- **Graceful Shutdown** - Proper signal handling for SIGTERM/SIGINT
 
 ## Quick Start
 
@@ -79,9 +82,30 @@ yarn build
 | POST   | /api/v1/orders            | Create order        | USER  |
 | PUT    | /api/v1/orders/:id/status | Update order status | ADMIN |
 
+## Health Checks
+
+| Endpoint | Purpose | Response |
+|----------|---------|----------|
+| `/health/live` | Liveness probe | Always 200 OK |
+| `/health/ready` | Readiness probe | 200 OK if MongoDB and Redis connected, 503 otherwise |
+
 ## Environment Variables
 
 See `.env.example` for required environment variables.
+
+### Production JWT Secrets
+
+In production, set strong JWT secrets via environment variables:
+
+```bash
+JWT_SECRET=<your-32-char-secret>
+JWT_REFRESH_SECRET=<your-32-char-secret>
+```
+
+Or use the docker-compose pattern:
+```bash
+JWT_SECRET=your-production-secret docker-compose up
+```
 
 ## Project Structure
 
