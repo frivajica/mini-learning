@@ -73,30 +73,21 @@ Best for: Enterprise, full containerization
 
 ### Building the Image
 
-```dockerfile
-# Dockerfile
-FROM node:20-alpine AS base
+```bash
+# Build the Docker image
+docker build -t mini-next-supabase:latest .
 
-FROM base AS deps
-WORKDIR /app
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
-
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN yarn build
-
-FROM base AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-EXPOSE 3000
-CMD ["node", "server.js"]
+# Run the container
+docker run -d -p 3000:3000 --name mini-next-supabase \
+  --env-file .env.production \
+  mini-next-supabase:latest
 ```
+
+The project includes a multi-stage Dockerfile with:
+- Non-root user for security
+- HEALTHCHECK for container orchestration
+- Multi-stage build for minimal image size
+- Standalone Next.js output
 
 ### Docker Compose Production
 
@@ -148,16 +139,33 @@ Set `SENTRY_DSN` in your Next.js environment to point to your Sentry instance.
 
 ## Monitoring
 
-### Health Check Endpoint
+### Health Check Endpoints
 
-The `/api/health` endpoint returns service status:
+Two endpoints are provided for container orchestration:
 
+**Liveness Probe** (`GET /api/health/live`):
 ```json
 {
   "status": "ok",
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
+
+**Readiness Probe** (`GET /api/health/ready`):
+```json
+{
+  "status": "ok",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "checks": {
+    "supabase": {
+      "status": "ok",
+      "latency": 23
+    }
+  }
+}
+```
+
+Use these for Kubernetes liveness/readiness probes or Docker HEALTHCHECK.
 
 ### Sentry Integration
 

@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your-strong-password-change-in-production}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
       - "5432:5432"
@@ -51,9 +51,9 @@ services:
       GOTRUE_API_PORT: 9999
       API_EXTERNAL_URL: http://localhost:54321
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres?search_path=auth
-      GOTRUE_SITE_URL: http://localhost:3000
-      GOTRUE_JWT_SECRET: your-jwt-secret-with-at-least-32-characters-long
+      GOTRUE_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-your-strong-password-change-in-production}@db:5432/postgres?search_path=auth
+      GOTRUE_SITE_URL: ${APP_URL:-http://localhost:3000}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-with-at-least-32-characters-long}
       GOTRUE_JWT_EXP: 3600
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_MAILER_AUTOCONFIRM: "true"
@@ -88,12 +88,12 @@ services:
     image: postgrest/postgrest:v12.0.2
     container_name: supabase-rest
     environment:
-      PGRST_DB_URI: postgres://postgres:postgres@db:5432/postgres
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD:-your-strong-password-change-in-production}@db:5432/postgres
       PGRST_DB_SCHEMAS: public,storage,graphql_public
       PGRST_DB_ANON_ROLE: anon
-      PGRST_JWT_SECRET: your-jwt-secret-with-at-least-32-characters-long
+      PGRST_JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-with-at-least-32-characters-long}
       PGRST_DB_USE_LEGACY_GUCS: "false"
-      PGRST_APP_SETTINGS_JWT_SECRET: your-jwt-secret-with-at-least-32-characters-long
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-with-at-least-32-characters-long}
       PGRST_APP_SETTINGS_JWT_EXP: 3600
     ports:
       - "54321:3000"
@@ -115,11 +115,11 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: postgres
-      DB_PASSWORD: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-your-strong-password-change-in-production}
       DB_NAME: postgres
       DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
-      DB_ENC_KEY: supabaserealtime
-      API_JWT_SECRET: your-jwt-secret-with-at-least-32-characters-long
+      DB_ENC_KEY: ${REALTIME_ENC_KEY:-change-this-enc-key-in-production}
+      API_JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-with-at-least-32-characters-long}
       FLY_ALLOC_ID: fly123
       FLY_APP_NAME: supabase
       SECRET_KEY_BASE: UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiZa15bRYp
@@ -140,8 +140,8 @@ services:
       ANON_KEY: your-anon-key
       SERVICE_KEY: your-service-role-key
       POSTGREST_URL: http://rest:3000
-      PGRST_JWT_SECRET: your-jwt-secret-with-at-least-32-characters-long
-      DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+      PGRST_JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-with-at-least-32-characters-long}
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-your-strong-password-change-in-production}@db:5432/postgres
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage
@@ -181,7 +181,7 @@ services:
       PG_META_DB_HOST: db
       PG_META_DB_NAME: postgres
       PG_META_DB_USER: postgres
-      PG_META_DB_PASSWORD: postgres
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-your-strong-password-change-in-production}
     ports:
       - "54325:8080"
     depends_on:
@@ -231,7 +231,7 @@ services:
       SENTRY_DB_PORT: 5432
       SENTRY_DB_NAME: sentry
       SENTRY_DB_USER: postgres
-      SENTRY_DB_PASSWORD: postgres
+      SENTRY_DB_PASSWORD: ${POSTGRES_PASSWORD:-your-strong-password-change-in-production}
       SENTRY_REDIS_HOST: redis
       SENTRY_REDIS_PORT: 6379
     depends_on:
@@ -249,25 +249,31 @@ services:
       dockerfile: Dockerfile
     container_name: next-supabase-app
     environment:
-      NODE_ENV: development
-      NEXT_PUBLIC_SUPABASE_URL: http://kong:8000
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: your-anon-key
-      SUPABASE_SERVICE_ROLE_KEY: your-service-role-key
+      NODE_ENV: production
+      NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_URL:-http://kong:8000}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-your-anon-key}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-your-service-role-key}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-http://localhost:3000}
       # Sentry
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
     ports:
       - "3000:3000"
-    volumes:
-      - ./src:/app/src:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
     depends_on:
-      - kong
-      - redis
-      - sentry
+      kong:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   db_data:

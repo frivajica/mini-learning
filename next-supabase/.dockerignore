@@ -1,0 +1,17 @@
+.next
+node_modules
+.env*
+!.env.example
+*.log
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.DS_Store
+coverage
+.playwright
+__tests__/results
+.vscode
+.idea
+*.swp
+*.swo
+.cache

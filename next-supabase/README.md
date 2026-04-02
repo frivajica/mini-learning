@@ -19,6 +19,8 @@ A production-ready reference implementation for learning Supabase patterns with 
 - **Tailwind CSS** - Utility-first styling
 - **Testing** - Vitest (unit/component) + Playwright (E2E)
 - **CI/CD** - GitHub Actions with lint, typecheck, test, and build pipelines
+- **Docker** - Production-ready multi-stage Dockerfile with HEALTHCHECK
+- **Health Endpoints** - Liveness and readiness probes for orchestration
 
 ## Tech Stack
 
@@ -36,6 +38,7 @@ A production-ready reference implementation for learning Supabase patterns with 
 | Styling      | Tailwind CSS            |
 | Testing      | Vitest + Playwright     |
 | CI/CD        | GitHub Actions          |
+| Container    | Docker                  |
 
 ## Quick Start
 
@@ -87,7 +90,7 @@ next-supabase/
 │   ├── app/                    # Next.js App Router
 │   │   ├── (auth)/            # Auth pages (login, register)
 │   │   ├── (dashboard)/       # Protected dashboard pages
-│   │   └── api/               # API routes (webhooks)
+│   │   └── api/               # API routes (webhooks, health)
 │   ├── actions/               # Server Actions
 │   ├── components/            # React components
 │   │   ├── ui/               # UI primitives (Button, Input, Card)
@@ -99,7 +102,12 @@ next-supabase/
 │       ├── validations.ts     # Zod schemas
 │       └── utils.ts           # Utility functions
 ├── docs/                      # Learning documentation
+├── docker/                    # Docker configuration
+│   └── kong.yml              # Kong API Gateway config
+├── Dockerfile                # Multi-stage production build
 ├── docker-compose.yml         # Supabase + Redis
+├── .env.example              # Environment variables template
+├── .dockerignore             # Docker build exclusions
 ├── package.json
 └── README.md
 ```
@@ -107,10 +115,20 @@ next-supabase/
 ## Environment Variables
 
 ```env
+# Database
+POSTGRES_PASSWORD=your-strong-password-min-32-chars
+
+# JWT
+JWT_SECRET=your-jwt-secret-min-32-characters-long
+REALTIME_ENC_KEY=your-realtime-enc-key-change-in-production
+
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_URL=http://localhost:54321
+SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# App
+APP_URL=http://localhost:3000
 
 # Stripe
 STRIPE_SECRET_KEY=sk_test_...
@@ -125,10 +143,17 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 # Sentry (Self-hosted)
 SENTRY_DSN=https://your-sentry-dsn@sentry.example.com/your-project
 SENTRY_SECRET_KEY=your_sentry_secret_key
-
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+SENTRY_AUTH_TOKEN=your_sentry_auth_token
 ```
+
+## Health Endpoints
+
+| Endpoint | Purpose | Auth Required |
+|----------|---------|---------------|
+| `GET /api/health/live` | Liveness probe (is server running?) | No |
+| `GET /api/health/ready` | Readiness probe (dependencies OK?) | No |
+
+The liveness endpoint returns `200 OK` if the server is running. The readiness endpoint verifies Supabase connectivity and returns `200 OK` or `503 Service Unavailable`.
 
 ## Learning Path
 
