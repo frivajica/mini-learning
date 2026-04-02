@@ -62,12 +62,21 @@ export class AuthService {
       const tokens = await this.generateTokens(user);
 
       return tokens;
-    } catch {
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new UnauthorizedError("Refresh token expired");
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new UnauthorizedError("Invalid refresh token");
+      }
       throw new UnauthorizedError("Invalid refresh token");
     }
   }
 
-  async logout(_refreshToken?: string) {}
+  async logout(_refreshToken?: string) {
+    // TODO: Implement token blacklist or blocklist if strict logout is required
+    // For now, client should discard the access token
+  }
 
   private async generateTokens(user: IUser) {
     const payload: TokenPayload = {

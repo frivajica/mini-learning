@@ -3,8 +3,10 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
 
 import { config } from "./config/index.js";
+import { redis } from "./config/redis.js";
 import {
   requestId,
   globalRateLimiter,
@@ -28,8 +30,32 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(globalRateLimiter);
 
-app.get("/health", (_req, res) => {
+app.get("/health/live", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get("/health/ready", async (_req, res) => {
+  const mongoStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected";
+  const mongoOk = mongoStatus === "connected";
+
+  let redisOk: boolean;
+  try {
+    await redis.ping();
+    redisOk = true;
+  } catch {
+    redisOk = false;
+  }
+
+  const ok = mongoOk && redisOk;
+
+  res.status(ok ? 200 : 503).json({
+    status: ok ? "ok" : "degraded",
+    timestamp: new Date().toISOString(),
+    checks: {
+      mongodb: mongoStatus,
+      redis: redisOk ? "connected" : "disconnected",
+    },
+  });
 });
 
 app.use("/api/v1", routes);

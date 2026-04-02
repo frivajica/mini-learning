@@ -43,6 +43,7 @@ export class ProductService {
 
   async getById(id: string) {
     const cacheKey = `product:${id}`;
+    const CACHE_SET_KEY = "cache:product:keys";
     const cached = await redis.get(cacheKey);
 
     if (cached) {
@@ -58,6 +59,7 @@ export class ProductService {
     }
 
     await redis.setex(cacheKey, PRODUCT_CACHE_TTL, JSON.stringify(product));
+    await redis.sadd(CACHE_SET_KEY, cacheKey);
 
     return product;
   }
@@ -136,13 +138,16 @@ export class ProductService {
   }
 
   private async invalidateProductCache(_id?: string) {
-    const keys: string[] = [];
+    const CACHE_SET_KEY = "cache:product:keys";
 
-    const productKeys = await redis.keys("product:*");
-    keys.push(...productKeys);
-
-    if (keys.length > 0) {
-      await redis.del(...keys);
+    if (_id) {
+      await redis.srem(CACHE_SET_KEY, `product:${_id}`);
     }
+
+    const cachedKeys = await redis.smembers(CACHE_SET_KEY);
+    if (cachedKeys.length > 0) {
+      await redis.del(...cachedKeys);
+    }
+    await redis.del(CACHE_SET_KEY);
   }
 }

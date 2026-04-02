@@ -7,6 +7,7 @@ const CATEGORY_CACHE_TTL = 600;
 export class CategoryService {
   async getAll() {
     const cacheKey = "categories:all";
+    const CACHE_SET_KEY = "cache:category:keys";
     const cached = await redis.get(cacheKey);
 
     if (cached) {
@@ -16,12 +17,14 @@ export class CategoryService {
     const categories = await Category.find().sort({ name: 1 });
 
     await redis.setex(cacheKey, CATEGORY_CACHE_TTL, JSON.stringify(categories));
+    await redis.sadd(CACHE_SET_KEY, cacheKey);
 
     return categories;
   }
 
   async getById(id: string) {
     const cacheKey = `category:${id}`;
+    const CACHE_SET_KEY = "cache:category:keys";
     const cached = await redis.get(cacheKey);
 
     if (cached) {
@@ -34,12 +37,14 @@ export class CategoryService {
     }
 
     await redis.setex(cacheKey, CATEGORY_CACHE_TTL, JSON.stringify(category));
+    await redis.sadd(CACHE_SET_KEY, cacheKey);
 
     return category;
   }
 
   async getBySlug(slug: string) {
     const cacheKey = `category:slug:${slug}`;
+    const CACHE_SET_KEY = "cache:category:keys";
     const cached = await redis.get(cacheKey);
 
     if (cached) {
@@ -52,6 +57,7 @@ export class CategoryService {
     }
 
     await redis.setex(cacheKey, CATEGORY_CACHE_TTL, JSON.stringify(category));
+    await redis.sadd(CACHE_SET_KEY, cacheKey);
 
     return category;
   }
@@ -125,17 +131,19 @@ export class CategoryService {
   }
 
   private async invalidateCategoryCache(id?: string) {
+    const CACHE_SET_KEY = "cache:category:keys";
     const keys: string[] = ["categories:all"];
 
     if (id) {
       keys.push(`category:${id}`);
     }
 
-    const slugKeys = await redis.keys("category:slug:*");
-    keys.push(...slugKeys);
+    const cachedKeys = await redis.smembers(CACHE_SET_KEY);
+    keys.push(...cachedKeys);
 
     if (keys.length > 0) {
       await redis.del(...keys);
     }
+    await redis.del(CACHE_SET_KEY);
   }
 }

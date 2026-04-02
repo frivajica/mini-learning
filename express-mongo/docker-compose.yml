@@ -10,8 +10,9 @@ services:
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/mongo_app
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=dev-secret-key-change-in-production-min-32-chars
-      - JWT_REFRESH_SECRET=dev-refresh-secret-change-in-production
+      # JWT secrets - override with strong values in production
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-key-change-in-production-min-32-chars}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-dev-refresh-secret-change-in-production}
       - ALLOWED_ORIGINS=http://localhost:3000
       - COOKIE_SECURE=false
     depends_on:
@@ -19,6 +20,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    # Volume mount for development hot reload - remove for production
     volumes:
       - ./src:/app/src
 
