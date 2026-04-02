@@ -4,19 +4,6 @@ Production-ready Spring Boot 3.5 reference implementation for learning modern Ja
 
 > **This variant uses [Lombok](https://projectlombok.org/)** to reduce boilerplate. See [docs/LEARN.md](docs/LEARN.md) for details on why Lombok is used in enterprise Java.
 
-## Quick Start
-
-```bash
-# Start infrastructure (PostgreSQL + Redis)
-docker compose up -d
-
-# Build and run
-./mvnw spring-boot:run
-
-# Run tests
-./mvnw test
-```
-
 ## Features
 
 - **JWT Authentication** with access + refresh tokens
@@ -28,6 +15,34 @@ docker compose up -d
 - **Flyway** for database migrations
 - **RESTful API** with versioning
 - **Lombok** for reduced boilerplate (industry standard)
+- **Docker** - Production-ready multi-stage Dockerfile with HEALTHCHECK
+- **Health Endpoints** - Liveness and readiness probes for container orchestration
+- **Graceful Shutdown** - Proper signal handling
+- **JWT Validation** - Startup validation for minimum secret length
+
+## Quick Start
+
+### Using Docker Compose
+
+```bash
+cd spring-lombok
+cp .env.example .env
+# Edit .env and set JWT_SECRET (required, minimum 32 characters)
+docker compose up --build
+```
+
+### Manual Setup
+
+```bash
+# Start infrastructure (PostgreSQL + Redis)
+docker compose up -d
+
+# Build and run
+./mvnw spring-boot:run
+
+# Run tests
+./mvnw test
+```
 
 ## Tech Stack
 
@@ -46,30 +61,40 @@ docker compose up -d
 ## Project Structure
 
 ```
-src/main/java/com/mini/
-├── config/           # Security, Redis, CORS configuration
-├── controller/       # REST endpoints (Auth, User, Health)
-├── service/          # Business logic
-├── repository/      # Data access (JPA)
-├── model/            # JPA entities
-├── dto/              # Request/Response objects
-├── security/         # JWT handling
-├── exception/        # Error handling
-└── util/             # Utilities
+spring-lombok/
+├── src/main/java/com/mini/
+│   ├── config/           # Security, Redis, CORS configuration
+│   ├── controller/       # REST endpoints (Auth, User, Health)
+│   ├── service/          # Business logic
+│   ├── repository/       # Data access (JPA)
+│   ├── model/            # JPA entities
+│   ├── dto/              # Request/Response objects
+│   ├── security/         # JWT handling
+│   ├── exception/         # Error handling
+│   └── util/             # Utilities
+├── src/main/resources/
+│   ├── application.yml   # Application configuration
+│   └── db/migration/     # Flyway migrations
+├── Dockerfile            # Multi-stage production build
+├── docker-compose.yml     # Full stack deployment
+├── CONTRIBUTING.md        # Contribution guidelines
+└── README.md
 ```
 
 ## API Endpoints
 
-| Method | Endpoint              | Description       | Auth   |
-| ------ | --------------------- | ----------------- | ------ |
-| POST   | /api/v1/auth/register | Register new user | Public |
-| POST   | /api/v1/auth/login    | Login             | Public |
-| POST   | /api/v1/auth/refresh  | Refresh token     | Public |
-| POST   | /api/v1/auth/logout   | Logout            | Public |
-| GET    | /api/v1/users         | List users        | ADMIN  |
-| GET    | /api/v1/users/{id}    | Get user by ID    | Auth   |
-| GET    | /api/v1/health        | Health check      | Public |
-| GET    | /actuator/health      | Actuator health   | Public |
+| Method | Endpoint                  | Description       | Auth   |
+| ------ | ------------------------- | ----------------- | ------ |
+| POST   | /api/v1/auth/register     | Register new user | Public |
+| POST   | /api/v1/auth/login        | Login             | Public |
+| POST   | /api/v1/auth/refresh      | Refresh token     | Public |
+| POST   | /api/v1/auth/logout       | Logout            | Public |
+| GET    | /api/v1/users             | List users        | ADMIN  |
+| GET    | /api/v1/users/{id}        | Get user by ID    | Auth   |
+| GET    | /api/v1/health/live        | Liveness probe    | Public |
+| GET    | /api/v1/health/ready        | Readiness probe   | Public |
+| GET    | /actuator/health/liveness  | Actuator liveness | Public |
+| GET    | /actuator/health/readiness | Actuator readiness| Public |
 
 ## Authentication Flow
 
@@ -82,19 +107,27 @@ src/main/java/com/mini/
 
 ## Environment Variables
 
-| Variable          | Default                                      | Description       |
-| ----------------- | -------------------------------------------- | ----------------- |
-| DATABASE_URL      | jdbc:postgresql://localhost:5432/mini_spring | PostgreSQL URL    |
-| DATABASE_USER     | postgres                                     | Database username |
-| DATABASE_PASSWORD | postgres                                     | Database password |
-| REDIS_URL         | redis://localhost:6379                       | Redis URL         |
-| JWT_SECRET        | (see application.yml)                        | JWT signing key   |
-| PORT              | 8080                                         | Server port       |
+| Variable          | Required | Default                                      | Description       |
+| ----------------- | -------- | -------------------------------------------- | ----------------- |
+| `JWT_SECRET`      | Yes      | -                                            | JWT signing key (min 32 chars) |
+| `DATABASE_URL`    | No       | jdbc:postgresql://postgres:5432/mini_spring   | PostgreSQL URL    |
+| `DATABASE_USER`   | No       | postgres                                     | Database username |
+| `DATABASE_PASSWORD`| No      | postgres                                     | Database password |
+| `REDIS_URL`       | No       | redis://redis:6379                           | Redis URL         |
+| `CORS_ORIGINS`    | No       | http://localhost:3000                        | Allowed CORS origins |
+| `PORT`            | No       | 8080                                         | Server port       |
+
+## Health Endpoints
+
+| Endpoint | Purpose | Auth Required |
+|----------|---------|---------------|
+| `GET /api/v1/health/live` | Liveness probe (is server running?) | No |
+| `GET /api/v1/health/ready` | Readiness probe (DB + Redis OK?) | No |
 
 ## Documentation
 
 - [LEARN.md](docs/LEARN.md) - Learning path and concepts
-- [COMPARISON.md](../docs/COMPARISON.md) - Compare with other frameworks
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 
 ## Building
 

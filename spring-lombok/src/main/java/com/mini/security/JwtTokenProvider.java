@@ -2,6 +2,7 @@ package com.mini.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,13 +18,26 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final int MIN_SECRET_LENGTH = 32;
 
-    private final SecretKey secretKey;
+    private final String secret;
+    private SecretKey secretKey;
     private final long accessTokenExpirationMinutes = 15;
     private final long refreshTokenExpirationDays = 7;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret) {
+        this.secret = secret;
+    }
+
+    @PostConstruct
+    public void init() {
+        if (secret == null || secret.length() < MIN_SECRET_LENGTH) {
+            throw new IllegalStateException(
+                "JWT_SECRET must be at least " + MIN_SECRET_LENGTH + " characters long. " +
+                "Current length: " + (secret == null ? 0 : secret.length()));
+        }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        logger.info("JWT Token Provider initialized successfully");
     }
 
     public String generateAccessToken(Long userId, String email) {
