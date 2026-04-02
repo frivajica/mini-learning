@@ -6,8 +6,8 @@ import { eq } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { randomUUID } from "crypto";
 import type { Loaders } from "../loaders";
+import { config } from "../config";
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey123";
 const SALT_ROUNDS = 10;
 
 export const userResolvers = {
@@ -57,7 +57,7 @@ export const userResolvers = {
       });
 
       const [user] = await db.select().from(users).where(eq(users.id, id));
-      const token = jwt.sign({ userId: id }, JWT_SECRET, { expiresIn: "7d" });
+      const token = jwt.sign({ userId: id }, config.jwtSecret, { expiresIn: "7d" });
 
       return { token, user };
     },
@@ -79,7 +79,7 @@ export const userResolvers = {
         throw new GraphQLError("Invalid credentials");
       }
 
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+      const token = jwt.sign({ userId: user.id }, config.jwtSecret, {
         expiresIn: "7d",
       });
 

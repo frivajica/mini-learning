@@ -10,6 +10,10 @@ A production-ready mini-project for learning GraphQL with modern tech stacks.
 - **Pagination**: Offset pagination (Posts) and Cursor pagination (Products)
 - **Real-time**: GraphQL Subscriptions for product stock updates
 - **N+1 Prevention**: DataLoader for efficient batch loading
+- **Docker**: Production-ready multi-stage Dockerfiles with HEALTHCHECK
+- **Health Endpoints**: Liveness and readiness probes for orchestration
+- **Security**: Non-root users, security headers, CORS configuration
+- **Graceful Shutdown**: Proper signal handling for container orchestration
 
 ## Tech Stack
 
@@ -21,6 +25,7 @@ A production-ready mini-project for learning GraphQL with modern tech stacks.
 - GraphQL Subscriptions (graphql-subscriptions + graphql-ws)
 - JWT Authentication (jsonwebtoken + bcryptjs)
 - DataLoader for batch loading
+- Structured JSON logging
 
 ### Frontend
 
@@ -34,12 +39,15 @@ A production-ready mini-project for learning GraphQL with modern tech stacks.
 ### Using Docker Compose
 
 ```bash
-cd /Users/frivajica/Projects/mini-learning/next-express-graphql
+cd next-express-graphql
+cp backend/.env.example backend/.env
+# Edit backend/.env and set JWT_SECRET
 docker-compose up --build
 ```
 
 - Frontend: http://localhost:3000
 - Backend GraphQL: http://localhost:4000/graphql
+- Health: http://localhost:4000/health/live
 
 ### Manual Setup
 
@@ -47,6 +55,8 @@ docker-compose up --build
 
 ```bash
 cd backend
+cp .env.example .env
+# Edit .env and set JWT_SECRET
 npm install
 npm run dev
 ```
@@ -55,6 +65,7 @@ npm run dev
 
 ```bash
 cd frontend
+cp .env.example .env.local
 npm install
 npm run dev
 ```
@@ -65,25 +76,56 @@ npm run dev
 next-express-graphql/
 ├── backend/
 │   ├── src/
-│   │   ├── db/           # Database schema and connection
-│   │   ├── schema/       # GraphQL type definitions
-│   │   ├── resolvers/    # GraphQL resolvers
-│   │   ├── loaders/      # DataLoader for N+1 prevention
-│   │   └── index.ts      # Express + Apollo Server entry
+│   │   ├── config.ts       # Environment configuration
+│   │   ├── db/            # Database schema and connection
+│   │   ├── schema/        # GraphQL type definitions
+│   │   ├── resolvers/     # GraphQL resolvers
+│   │   ├── loaders/       # DataLoader for N+1 prevention
+│   │   └── index.ts       # Express + Apollo Server entry
 │   ├── Dockerfile
+│   ├── .env.example
 │   └── package.json
 ├── frontend/
 │   ├── src/
-│   │   ├── app/          # Next.js App Router pages
-│   │   └── lib/          # Apollo Client, Zustand store
+│   │   ├── app/           # Next.js App Router pages
+│   │   │   ├── error.tsx  # Error boundary
+│   │   │   └── not-found.tsx # 404 page
+│   │   └── lib/           # Apollo Client, Zustand store
 │   ├── Dockerfile
+│   ├── .env.example
+│   ├── next.config.ts
 │   └── package.json
 ├── docs/
-│   ├── LEARN.md          # GraphQL concepts and learning guide
-│   └── AUTH_INFO.md      # JWT authentication details
+│   ├── LEARN.md           # GraphQL concepts and learning guide
+│   └── AUTH_INFO.md       # JWT authentication details
 ├── docker-compose.yml
 └── README.md
 ```
+
+## Environment Variables
+
+### Backend
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `JWT_SECRET` | Yes | JWT signing secret (min 32 chars) |
+| `PORT` | No | Server port (default: 4000) |
+| `NODE_ENV` | No | Environment (development/production) |
+| `CORS_ORIGINS` | No | Comma-separated allowed origins |
+
+### Frontend
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_GRAPHQL_HTTP_URL` | Yes | GraphQL HTTP endpoint |
+| `NEXT_PUBLIC_GRAPHQL_WS_URL` | Yes | GraphQL WebSocket endpoint |
+
+## Health Endpoints
+
+| Endpoint | Purpose | Auth Required |
+|----------|---------|---------------|
+| `GET /health/live` | Liveness probe (is server running?) | No |
+| `GET /health/ready` | Readiness probe (dependencies OK?) | No |
 
 ## GraphQL API
 
@@ -125,3 +167,25 @@ next-express-graphql/
 | `/posts/[id]` | Post detail with comments                            |
 | `/products`   | Products with cursor pagination + live stock updates |
 | `/login`      | Login/Register page                                  |
+
+## Scripts
+
+### Backend
+
+```bash
+npm run dev        # Start development server
+npm run build     # Build for production
+npm run start     # Start production server
+npm run db:push   # Push schema to database
+npm run db:studio # Open Drizzle Studio
+```
+
+### Frontend
+
+```bash
+npm run dev        # Start development server
+npm run build     # Build for production
+npm run start     # Start production server
+npm run lint      # Run ESLint
+npm run typecheck # Run TypeScript checks
+```

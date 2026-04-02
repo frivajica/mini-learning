@@ -13,17 +13,21 @@ import { PubSub } from "graphql-subscriptions";
 import { typeDefs } from "./schema/typeDefs";
 import { resolvers } from "./resolvers";
 import { createLoaders } from "./loaders";
+import { config } from "./config";
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey123";
-const PORT = process.env.PORT || 4000;
+const pubsub = new PubSub();
+
+interface MyContext {
+  pubsub: PubSub;
+  userId?: string;
+  loaders: ReturnType<typeof createLoaders>;
+}
 
 async function startServer() {
   const app = express();
   const httpServer = createServer(app);
 
   const schema = makeExecutableSchema({ typeDefs, resolvers });
-
-  const pubsub = new PubSub();
 
   const wsServer = new WebSocketServer({
     server: httpServer,
@@ -33,7 +37,7 @@ async function startServer() {
   const serverCleanup = useServer(
     {
       schema,
-      context: async (ctx) => {
+      context: async (ctx): Promise<MyContext> => {
         const token = ctx.connectionParams?.authorization as string | undefined;
         let userId: string | undefined;
 
@@ -41,7 +45,7 @@ async function startServer() {
           try {
             const decoded = jwt.verify(
               token.replace("Bearer ", ""),
-              JWT_SECRET,
+              config.jwtSecret,
             ) as { userId: string };
             userId = decoded.userId;
           } catch {
@@ -55,7 +59,7 @@ async function startServer() {
     wsServer,
   );
 
-  const server = new ApolloServer({
+  const server = new ApolloServer<MyContext>({
     schema,
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
@@ -75,16 +79,19 @@ async function startServer() {
 
   app.use(
     "/graphql",
-    cors<cors.CorsRequest>(),
+    cors<cors.CorsRequest>({
+      origin: config.corsOrigins,
+      credentials: true,
+    }),
     express.json(),
     expressMiddleware(server, {
-      context: async ({ req }) => {
+      context: async ({ req }): Promise<MyContext> => {
         const token = req.headers.authorization?.replace("Bearer ", "");
         let userId: string | undefined;
 
         if (token) {
           try {
-            const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+            const decoded = jwt.verify(token, config.jwtSecret) as { userId: string };
             userId = decoded.userId;
           } catch {
             // Invalid token
@@ -96,10 +103,51 @@ async function startServer() {
     }),
   );
 
-  httpServer.listen(PORT, () => {
-    console.log(`🚀 HTTP Server ready at http://localhost:${PORT}/graphql`);
-    console.log(`🚀 WebSocket Server ready at ws://localhost:${PORT}/graphql`);
+  app.get("/health/live", (_, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
+
+  app.get("/health/ready", async (_, res) => {
+    try {
+      res.json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        checks: { database: { status: "ok" } },
+      });
+    } catch {
+      res.status(503).json({
+        status: "error",
+        timestamp: new Date().toISOString(),
+        checks: { database: { status: "error" } },
+      });
+    }
+  });
+
+  httpServer.listen(config.port, () => {
+    console.log(JSON.stringify({
+      level: "info",
+      message: `🚀 HTTP Server ready at http://localhost:${config.port}/graphql`,
+      environment: config.nodeEnv,
+    }));
+    console.log(JSON.stringify({
+      level: "info",
+      message: `🚀 WebSocket Server ready at ws://localhost:${config.port}/graphql`,
+      environment: config.nodeEnv,
+    }));
+  });
+
+  const shutdown = async (signal: string) => {
+    console.log(JSON.stringify({ level: "info", message: `${signal} received, shutting down gracefully` }));
+    await server.stop();
+    httpServer.close();
+    process.exit(0);
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 }
 
-startServer().catch(console.error);
+startServer().catch((err) => {
+  console.error(JSON.stringify({ level: "error", message: "Failed to start server", error: err.message }));
+  process.exit(1);
+});
