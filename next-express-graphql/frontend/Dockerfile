@@ -4,8 +4,10 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn/plugins ./plugins
+COPY .yarn/releases ./releases
+RUN corepack enable && yarn install
 
 FROM node:20-alpine AS builder
 
@@ -14,7 +16,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN npm run build
+RUN yarn build
 
 FROM node:20-alpine AS runner
 
@@ -28,6 +30,7 @@ RUN addgroup --system --gid 1001 nextjs && \
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
+COPY --from=builder /app/.yarnrc.yml ./
 
 USER nextjs
 

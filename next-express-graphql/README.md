@@ -57,8 +57,9 @@ docker-compose up --build
 cd backend
 cp .env.example .env
 # Edit .env and set JWT_SECRET
-npm install
-npm run dev
+corepack enable
+yarn install
+yarn dev
 ```
 
 #### Frontend
@@ -66,7 +67,8 @@ npm run dev
 ```bash
 cd frontend
 cp .env.example .env.local
-npm install
+corepack enable
+yarn install
 npm run dev
 ```
 
@@ -173,19 +175,19 @@ next-express-graphql/
 ### Backend
 
 ```bash
-npm run dev        # Start development server
-npm run build     # Build for production
-npm run start     # Start production server
-npm run db:push   # Push schema to database
-npm run db:studio # Open Drizzle Studio
+yarn dev        # Start development server
+yarn build     # Build for production
+yarn start     # Start production server
+yarn db:push   # Push schema to database
+yarn db:studio # Open Drizzle Studio
 ```
 
 ### Frontend
 
 ```bash
-npm run dev        # Start development server
-npm run build     # Build for production
-npm run start     # Start production server
-npm run lint      # Run ESLint
-npm run typecheck # Run TypeScript checks
+yarn dev        # Start development server
+yarn build     # Build for production
+yarn start     # Start production server
+yarn lint      # Run ESLint
+yarn typecheck # Run TypeScript checks
 ```
