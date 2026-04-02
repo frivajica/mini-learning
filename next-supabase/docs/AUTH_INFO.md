@@ -137,7 +137,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const publicRoutes = ["/login", "/register"];
-const publicApiRoutes = ["/api/auth", "/api/health"];
+const publicApiRoutes = ["/api/auth", "/api/health/live", "/api/health/ready"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
