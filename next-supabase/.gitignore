@@ -14,3 +14,6 @@ build/
 *.log
 .env*.local
 .DS_Store
+
+*.tsbuildinfo
+.yarn/install-state.gz
