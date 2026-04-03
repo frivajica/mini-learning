@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 const jwtSchema = z.object({
-  secret: z.string().min(32),
-  refreshSecret: z.string().min(32),
+  secret: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  refreshSecret: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
   expiresIn: z.string().default('15m'),
   refreshExpiresIn: z.string().default('7d'),
 });
@@ -51,37 +51,19 @@ const configSchema = z.object({
 
 export type Config = z.infer<typeof configSchema>;
 
-function validateProductionSecrets(jwt: Config['jwt'], nodeEnv: string) {
-  if (nodeEnv === 'production') {
-    const defaultSecret = 'default-secret-change-in-production';
-    const defaultRefresh = 'default-refresh-secret-change';
-    
-    if (jwt.secret === defaultSecret || jwt.secret.length < 32) {
-      throw new Error('JWT_SECRET must be at least 32 characters in production');
-    }
-    if (jwt.refreshSecret === defaultRefresh || jwt.refreshSecret.length < 32) {
-      throw new Error('JWT_REFRESH_SECRET must be at least 32 characters in production');
-    }
-  }
-}
-
 function loadConfig(): Config {
-  const jwtConfig = {
-    secret: process.env.JWT_SECRET || 'dev-secret-min-32-chars-change-in-prod',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-min-32-chars-change-in-prod',
-    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-  };
+  const jwtSecret = process.env.JWT_SECRET;
+  const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+
+  if (!jwtSecret || jwtSecret.length < 32) {
+    throw new Error('JWT_SECRET environment variable must be at least 32 characters');
+  }
+  if (!jwtRefreshSecret || jwtRefreshSecret.length < 32) {
+    throw new Error('JWT_REFRESH_SECRET environment variable must be at least 32 characters');
+  }
 
   const nodeEnv = process.env.NODE_ENV || 'development';
   
-  try {
-    validateProductionSecrets(jwtConfig, nodeEnv);
-  } catch (error) {
-    console.error('Configuration validation failed:', (error as Error).message);
-    process.exit(1);
-  }
-
   const parsed = configSchema.safeParse({
     port: parseInt(process.env.PORT || '3000'),
     nodeEnv,
@@ -91,7 +73,12 @@ function loadConfig(): Config {
     redis: {
       url: process.env.REDIS_URL || 'redis://localhost:6379',
     },
-    jwt: jwtConfig,
+    jwt: {
+      secret: jwtSecret,
+      refreshSecret: jwtRefreshSecret,
+      expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+      refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    },
     cors: {
       origins: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
     },

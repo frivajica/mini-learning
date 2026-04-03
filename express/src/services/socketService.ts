@@ -5,7 +5,7 @@ import { logger } from '../utils/logger.js';
 
 let io: SocketIOServer | null = null;
 
-export function initializeSocket(httpServer: HTTPServer) {
+export function initializeSocket(httpServer: HTTPServer): SocketIOServer {
   io = new SocketIOServer(httpServer, {
     cors: {
       origin: config.cors.origins,
@@ -34,7 +34,7 @@ export function initializeSocket(httpServer: HTTPServer) {
   return io;
 }
 
-export function getIO() {
+export function getIO(): SocketIOServer {
   if (!io) {
     throw new Error('Socket.io not initialized');
   }

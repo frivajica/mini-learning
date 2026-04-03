@@ -2,8 +2,10 @@ node_modules/
 dist/
 .env
 .env.local
+.env.*.local
 coverage/
 *.log
 drizzle/
 .DS_Store
 *.tgz
+.yarn/install-state.gz
