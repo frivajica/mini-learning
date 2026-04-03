@@ -6,11 +6,12 @@ import { DRIZZLE } from '../database/database.module';
 import { users, refreshTokens, User } from '../database/schema';
 import { eq } from 'drizzle-orm';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
+import type { Database } from '../database';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(DRIZZLE) private db: any,
+    @Inject(DRIZZLE) private db: Database,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}

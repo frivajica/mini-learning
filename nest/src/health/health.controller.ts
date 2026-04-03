@@ -1,5 +1,6 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Inject, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiExcludeController } from '@nestjs/swagger';
+import { Response } from 'express';
 import { DRIZZLE } from '../database/database.module';
 
 @ApiTags('health')
@@ -8,7 +9,7 @@ export class HealthController {
   constructor(@Inject(DRIZZLE) private db: any) {}
 
   @Get('health')
-  @ApiOperation({ summary: 'Basic health check' })
+  @ApiOperation({ summary: 'Liveness probe' })
   check() {
     return {
       status: 'ok',
@@ -18,20 +19,27 @@ export class HealthController {
 
   @Get('health/ready')
   @ApiOperation({ summary: 'Readiness check (includes dependencies)' })
-  async ready() {
+  async ready(@Res() res: Response) {
+    const checks: Record<string, { status: string; latency?: number; error?: string }> = {};
+    let isHealthy = true;
+
+    const dbStart = Date.now();
     try {
       await this.db.execute('SELECT 1');
-      return {
-        status: 'ready',
-        timestamp: new Date().toISOString(),
-        database: 'connected',
-      };
-    } catch {
-      return {
-        status: 'not ready',
-        timestamp: new Date().toISOString(),
-        database: 'disconnected',
+      checks.database = { status: 'ok', latency: Date.now() - dbStart };
+    } catch (err) {
+      isHealthy = false;
+      checks.database = { 
+        status: 'error', 
+        error: err instanceof Error ? err.message : 'Unknown error' 
       };
     }
+
+    const status = isHealthy ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
+    return res.status(status).json({
+      status: isHealthy ? 'ready' : 'not ready',
+      timestamp: new Date().toISOString(),
+      checks,
+    });
   }
 }
