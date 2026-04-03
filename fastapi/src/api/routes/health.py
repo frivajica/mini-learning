@@ -17,10 +17,26 @@ async def health_check():
 async def readiness_check(
     db: AsyncSession = Depends(DBSession),
 ):
+    checks = {"database": {"status": "ok"}, "redis": {"status": "ok"}}
+    is_ready = True
+
     try:
         await db.execute(text("SELECT 1"))
+    except Exception as e:
+        checks["database"] = {"status": "error", "error": str(e)}
+        is_ready = False
+
+    try:
         redis = await get_redis()
         await redis.ping()
-        return {"status": "ready", "database": "ok", "redis": "ok"}
     except Exception as e:
-        return {"status": "not ready", "error": str(e)}
+        checks["redis"] = {"status": "error", "error": str(e)}
+        is_ready = False
+
+    if not is_ready:
+        return {"status": "not ready", "checks": checks}
+
+    return {
+        "status": "ready",
+        "checks": checks,
+    }
