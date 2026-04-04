@@ -7,6 +7,7 @@ dist/
 
 # Yarn install state
 .yarn/
+.yarn/install-state.gz
 
 # SQLite database
 data/

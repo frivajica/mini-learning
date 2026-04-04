@@ -3,15 +3,13 @@ import { db } from "./db";
 import type { User } from "./db";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "dev-only-secret-at-least-32-characters-long!!",
-);
+const JWT_SECRET = process.env.JWT_SECRET;
 
-if (!process.env.JWT_SECRET) {
-  console.warn(
-    "WARNING: Using development JWT_SECRET. Set JWT_SECRET in production!",
-  );
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error("JWT_SECRET environment variable must be at least 32 characters");
 }
+
+const JWT_SECRET_KEY = new TextEncoder().encode(JWT_SECRET);
 
 const ACCESS_TOKEN_EXPIRY = "15m";
 
@@ -32,14 +30,14 @@ export async function createAccessToken(user: User): Promise<string> {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(ACCESS_TOKEN_EXPIRY)
-    .sign(JWT_SECRET);
+    .sign(JWT_SECRET_KEY);
 }
 
 export async function verifyAccessToken(
   token: string,
 ): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, JWT_SECRET_KEY);
     return payload as unknown as TokenPayload;
   } catch {
     return null;
